@@ -4,6 +4,7 @@
 -- Opzioni in script-opts/gestures.conf.
 local mp = require 'mp'
 local options = require 'mp.options'
+local utils = require 'mp.utils'
 
 local opts = { boost = 2, hold_ms = 350, drag_px = 8, hints = 3, wheel_gap = 0.3, speed_step = 0.1, wheel_rate = 0.12, click_max = 0.25 }
 options.read_options(opts, "gestures")
@@ -152,7 +153,32 @@ local function release_mouse()
     down_pos = nil
 end
 
-local down_time, windowed = 0, false
+local down_time, windowed, down_win = 0, false, nil
+
+-- Posizione della finestra di questo mpv secondo Hyprland (nil se non disponibile)
+local function window_pos()
+    local r = mp.command_native({
+        name = "subprocess", args = { "hyprctl", "clients", "-j" },
+        capture_stdout = true, playback_only = false,
+    })
+    if not r or r.status ~= 0 then return nil end
+    local clients = utils.parse_json(r.stdout or "")
+    local pid = mp.get_property_number("pid")
+    for _, c in ipairs(clients or {}) do
+        if c.pid == pid and c.at then return c.at[1] .. "," .. c.at[2] end
+    end
+    return nil
+end
+
+-- Su Wayland, quando inizia lo spostamento della finestra mpv riceve subito un rilascio finto:
+-- prima di mettere in pausa controlliamo che la finestra non si sia mossa e che il cursore sia sul video
+local function was_real_click()
+    if not windowed then return true end
+    local hover = (mp.get_property_native("mouse-pos") or {}).hover
+    if hover == false then return false end
+    local now = window_pos()
+    return not (down_win and now and now ~= down_win)
+end
 
 mp.add_key_binding(nil, "click", function(e)
     if e.event == "down" then
@@ -162,6 +188,7 @@ mp.add_key_binding(nil, "click", function(e)
         mp.observe_property("mouse-pos", "native", on_mouse_move)
         -- Nel popup premere a lungo serve a spostarlo: il 2x tenendo premuto vale solo a schermo intero
         windowed = not mp.get_property_bool("fullscreen")
+        down_win = windowed and window_pos() or nil
         if not windowed then
             hold_timer = mp.add_timeout(opts.hold_ms / 1000 + 0.1, function()
                 hold_timer = nil
@@ -181,7 +208,10 @@ mp.add_key_binding(nil, "click", function(e)
         elseif not mouse_drag then
             -- aspetta il tempo del doppio clic prima di mettere in pausa
             local wait = mp.get_property_number("input-doubleclick-time", 300) / 1000
-            click_timer = mp.add_timeout(wait, function() click_timer = nil; toggle_pause() end)
+            click_timer = mp.add_timeout(wait, function()
+                click_timer = nil
+                if was_real_click() then toggle_pause() end
+            end)
         end
         mouse_held, mouse_drag = false, false
     elseif e.event == "press" then
