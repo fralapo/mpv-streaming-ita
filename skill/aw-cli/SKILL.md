@@ -5,13 +5,20 @@ description: Riproduci, cerca, scarichi e tieni traccia di anime, serie TV e fil
 
 # aw-cli + StreamingCommunity: guarda e sincronizza contenuti
 
-aw-cli e lo strumento StreamingCommunity (vixsrc) sono esposti agli agenti come **strumenti MCP** (server locale
-`~/.local/share/aw-cli-tool/mcp_server.py`). La watchlist di anime si sincronizza
+aw-cli e lo strumento StreamingCommunity (vixsrc) sono esposti come **strumenti MCP** dal server locale
+`~/.local/share/aw-cli-tool/mcp_server.py`. La skill vale per qualsiasi agente che supporti MCP
+(Claude Code, Codex, Gemini CLI, OpenCode, Cursor, ...). La watchlist di anime si sincronizza
 su **AniList** (se nel browser usi Mal-Sync, anche ciò che guardi lì finisce nella stessa lista).
 
-## Strumenti MCP disponibili (prefisso `mcp__aw-cli__`)
+## Strumenti MCP disponibili (server `aw-cli`)
 
-Trova e usa i tool tramite la ricerca strumenti.
+I nomi qui sotto sono quelli del server. Ogni client li presenta a modo suo: per esempio Claude Code
+li chiama `mcp__aw-cli__play`, altri client `aw-cli_play` o semplicemente `play`. Se il client carica gli
+strumenti su richiesta, cercali per nome.
+
+Se nessuno strumento del server `aw-cli` è disponibile, non improvvisare con comandi da terminale:
+di' all'utente che il server MCP non è registrato e rimandalo alla sezione "Agenti AI e server MCP" del
+README di https://github.com/fralapo/mpv-streaming-ita.
 
 ### Anime (aw-cli, provider AnimeWorld/AnimeUnity)
 - `search` — cerca un anime; `info` — trama/dettagli; `episodes` — episodi disponibili + progresso

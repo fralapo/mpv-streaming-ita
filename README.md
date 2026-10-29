@@ -2,15 +2,15 @@
 
 # mpv-streaming-ita
 
-**Configurazione di [mpv](https://mpv.io) per guardare anime, serie TV e film in italiano su Linux, con salto di opening ed ending, popup sempre in primo piano e un server MCP per avviarli da Claude Code.**
+**Configurazione di [mpv](https://mpv.io) per guardare anime, serie TV e film in italiano su Linux, con salto di opening ed ending, popup sempre in primo piano e un server MCP per avviarli chiedendolo a un agente AI (Claude Code, Codex, Gemini CLI, OpenCode...).**
 
 [![Licenza MIT](https://img.shields.io/badge/licenza-MIT-blue)](LICENSE)
 [![testato con mpv 0.41](https://img.shields.io/badge/mpv-0.41-691f69)](https://mpv.io)
 [![Linux Wayland](https://img.shields.io/badge/Linux-Wayland-333)](#requisiti)
 [![Hyprland opzionale](https://img.shields.io/badge/Hyprland-opzionale-58e1ff)](https://github.com/hyprwm/Hyprland)
-[![MCP per Claude Code](https://img.shields.io/badge/MCP-Claude%20Code-d97757)](#claude-code-e-server-mcp)
+[![Server MCP per agenti AI](https://img.shields.io/badge/MCP-agenti%20AI-d97757)](#agenti-ai-e-server-mcp)
 
-mpv-streaming-ita è un insieme di file di configurazione e script Lua per mpv, più un server MCP in Python. Lo uso ogni giorno su un portatile con Omarchy (Arch + Hyprland) per guardare gli anime da AnimeWorld e AnimeUnity tramite [aw-cli](https://github.com/fexh10/aw-cli), e i film e le serie da StreamingCommunity tramite [StreamingCommunity-downloader-streamer](https://github.com/Liutprando08/StreamingCommunity-downloader-streamer). La parte su mpv funziona da sola con qualsiasi video. Hyprland e Claude Code sono facoltativi.
+mpv-streaming-ita è un insieme di file di configurazione e script Lua per mpv, più un server MCP in Python. Lo uso ogni giorno su un portatile con Omarchy (Arch + Hyprland) per guardare gli anime da AnimeWorld e AnimeUnity tramite [aw-cli](https://github.com/fexh10/aw-cli), e i film e le serie da StreamingCommunity tramite [StreamingCommunity-downloader-streamer](https://github.com/Liutprando08/StreamingCommunity-downloader-streamer). La parte su mpv funziona da sola con qualsiasi video. Hyprland e gli agenti AI sono facoltativi.
 
 Il repo non contiene video, link a contenuti né account: si limita a configurare il player e a collegare strumenti open source esistenti.
 
@@ -19,7 +19,7 @@ Il repo non contiene video, link a contenuti né account: si limita a configurar
 - [Cosa fa](#cosa-fa)
 - [Requisiti](#requisiti)
 - [Installazione](#installazione)
-- [Claude Code e server MCP](#claude-code-e-server-mcp)
+- [Agenti AI e server MCP](#agenti-ai-e-server-mcp)
 - [Contenuto del repo](#contenuto-del-repo)
 - [Temi](#temi)
 - [Scorciatoie](#scorciatoie)
@@ -51,7 +51,7 @@ Il repo non contiene video, link a contenuti né account: si limita a configurar
 | GPU con Vulkan e VA-API | decodifica hardware e ArtCNN | configurato per Intel Arc; con altre GPU di solito basta lasciare `hwdec=vaapi,auto-safe` |
 | [Hyprland](https://github.com/hyprwm/Hyprland) con config in Lua, `jq` | popup e `SUPER+CTRL+P` | senza Hyprland il resto funziona, il popup no |
 | [mpv-mpris](https://github.com/hoyon/mpv-mpris) | tasti multimediali da qualsiasi finestra | facoltativo |
-| [aw-cli](https://github.com/fexh10/aw-cli), [StreamingCommunity](https://github.com/Liutprando08/StreamingCommunity-downloader-streamer), [Claude Code](https://code.claude.com/docs) | riprodurre chiedendolo a Claude | facoltativi, vedi [sotto](#claude-code-e-server-mcp) |
+| [aw-cli](https://github.com/fexh10/aw-cli), [StreamingCommunity](https://github.com/Liutprando08/StreamingCommunity-downloader-streamer), un agente con supporto MCP | riprodurre chiedendolo a un agente AI | facoltativi, vedi [sotto](#agenti-ai-e-server-mcp) |
 
 ## Installazione
 
@@ -79,9 +79,11 @@ Al primo avvio ArtCNN compila la sua pipeline. Ci vogliono circa 35 secondi, una
 
 <p align="right">(<a href="#readme-top">torna su</a>)</p>
 
-## Claude Code e server MCP
+## Agenti AI e server MCP
 
-Questa parte è facoltativa. Il server MCP in `aw-cli-tool/mcp_server.py` espone aw-cli e StreamingCommunity come strumenti per [Claude Code](https://code.claude.com/docs) (o per qualsiasi client [MCP](https://modelcontextprotocol.io)). Puoi quindi scrivere «riproduci l'episodio 5 di Frieren» o «continua The Last of Us», e Claude cerca il titolo, apre mpv e tiene traccia di dove sei arrivato.
+Questa parte è facoltativa. Il server MCP in `aw-cli-tool/mcp_server.py` espone aw-cli e StreamingCommunity come strumenti per qualsiasi agente che supporti il [Model Context Protocol](https://modelcontextprotocol.io): Claude Code, Codex, Gemini CLI, OpenCode, Cursor e altri. Puoi quindi scrivere «riproduci l'episodio 5 di Frieren» o «continua The Last of Us», e l'agente cerca il titolo, apre mpv e tiene traccia di dove sei arrivato.
+
+La skill in `skill/aw-cli/SKILL.md` segue il formato aperto [Agent Skills](https://agentskills.io) e spiega all'agente quale strumento usare e quando. `install.sh` la copia in `~/.agents/skills/`, la cartella letta da Codex, Gemini CLI e OpenCode, e in `~/.claude/skills/` per Claude Code.
 
 **1. Installa aw-cli** con [uv](https://docs.astral.sh/uv/). Il server MCP gira con il Python di questo ambiente:
 
@@ -96,13 +98,66 @@ python -m venv ~/.local/share/sc-tool/venv
 ~/.local/share/sc-tool/venv/bin/pip install streamingcommunity-download-stream
 ```
 
-**3. Registra il server MCP** (`install.sh` ha già copiato server, helper e skill):
+**3. Registra il server MCP** nel tuo agente. `install.sh` ha già copiato server, helper e skill. Il server si avvia sempre con lo stesso comando:
+
+```bash
+~/.local/share/uv/tools/aw-cli/bin/python ~/.local/share/aw-cli-tool/mcp_server.py
+```
+
+Claude Code:
 
 ```bash
 claude mcp add aw-cli -- ~/.local/share/uv/tools/aw-cli/bin/python ~/.local/share/aw-cli-tool/mcp_server.py
 ```
 
-**4. Collega le liste**, se le usi. Basta chiederlo a Claude:
+Codex:
+
+```bash
+codex mcp add aw-cli -- ~/.local/share/uv/tools/aw-cli/bin/python ~/.local/share/aw-cli-tool/mcp_server.py
+```
+
+Gemini CLI:
+
+```bash
+gemini mcp add -s user aw-cli ~/.local/share/uv/tools/aw-cli/bin/python ~/.local/share/aw-cli-tool/mcp_server.py
+```
+
+<details>
+<summary>OpenCode, Cursor e altri client con configurazione JSON</summary>
+
+Nei file JSON `~` non viene espanso: sostituisci `/home/TUONOME` con il percorso della tua home (`echo $HOME`).
+
+OpenCode, in `~/.config/opencode/opencode.json`:
+
+```json
+{
+  "mcp": {
+    "aw-cli": {
+      "type": "local",
+      "command": ["/home/TUONOME/.local/share/uv/tools/aw-cli/bin/python", "/home/TUONOME/.local/share/aw-cli-tool/mcp_server.py"]
+    }
+  }
+}
+```
+
+Cursor (`~/.cursor/mcp.json`) e la maggior parte degli altri client:
+
+```json
+{
+  "mcpServers": {
+    "aw-cli": {
+      "command": "/home/TUONOME/.local/share/uv/tools/aw-cli/bin/python",
+      "args": ["/home/TUONOME/.local/share/aw-cli-tool/mcp_server.py"]
+    }
+  }
+}
+```
+
+Se il tuo agente non legge `~/.agents/skills/`, copia `skill/aw-cli/SKILL.md` nella sua cartella delle skill o incollane il contenuto nelle sue istruzioni.
+
+</details>
+
+**4. Collega le liste**, se le usi. Basta chiederlo all'agente:
 
 - **AniList:** genera un token su [anilist.co](https://anilist.co/settings/developer) e chiedi «imposta il token AniList …» (strumento `config_set`, chiave `anilist.token`).
 - **Simkl:** crea un'app su [simkl.com/settings/developer](https://simkl.com/settings/developer/) con redirect `http://localhost:9876/callback`. Imposta poi `simkl.client_id` e `simkl.client_secret` con `config_set` e lancia `simkl_auth`, che apre il browser per il login.
@@ -127,7 +182,7 @@ I token restano nella configurazione di aw-cli sul tuo computer. Il repo non li 
 
 </details>
 
-Dopo aver modificato `mcp_server.py`, in Claude Code riconnetti il server con `/mcp`.
+Dopo aver modificato `mcp_server.py` riavvia il server dal tuo agente (in Claude Code con `/mcp`).
 
 <p align="right">(<a href="#readme-top">torna su</a>)</p>
 
@@ -149,7 +204,7 @@ Dopo aver modificato `mcp_server.py`, in Claude Code riconnetti il server con `/
 | `bin/mpv-theme`, `themes/*.conf` | temi di colore e il comando per cambiarli |
 | `aw-cli-tool/mcp_server.py` | server MCP: aw-cli, StreamingCommunity, capitoli AniSkip, tracciamento della posizione via IPC di mpv, AniList e Simkl |
 | `sc-tool/sc_helper.py` | helper che il server MCP usa per StreamingCommunity |
-| `claude-skill/aw-cli/SKILL.md` | skill di Claude Code che spiega a Claude come usare gli strumenti |
+| `skill/aw-cli/SKILL.md` | skill nel formato Agent Skills: spiega a qualsiasi agente come usare gli strumenti |
 
 ## Temi
 
@@ -224,7 +279,7 @@ Sì. Configurazione, script, temi e server MCP funzionano con qualsiasi composit
 **Funziona su X11, macOS o Windows?**
 Su X11 sì, dopo aver tolto `gpu-context=waylandvk` da `mpv.conf`. Su macOS e Windows non l'ho provato: gli script Lua dovrebbero andare, ma `install.sh`, il popup e i percorsi sono pensati per Linux.
 
-**Serve Claude Code per usarlo?**
+**Serve un agente AI per usarlo?**
 No. Il server MCP è un'aggiunta. Puoi usare mpv con aw-cli dal terminale, oppure aprire qualsiasi file o URL.
 
 **Dove finiscono i miei token di AniList e Simkl?**
@@ -247,7 +302,7 @@ Questo repo configura e collega il lavoro di altri:
 - [StreamingCommunity-downloader-streamer](https://github.com/Liutprando08/StreamingCommunity-downloader-streamer): film e serie TV
 - [AniList](https://anilist.co), [Simkl](https://simkl.com) e [MAL-Sync](https://github.com/MALSync/MALSync): liste e sincronizzazione
 - [Hyprland](https://github.com/hyprwm/Hyprland) e [Omarchy](https://github.com/basecamp/omarchy): il desktop su cui è nato
-- [Claude Code](https://code.claude.com/docs) e il [Model Context Protocol](https://modelcontextprotocol.io)
+- il [Model Context Protocol](https://modelcontextprotocol.io) e il formato [Agent Skills](https://agentskills.io)
 
 ## Licenza
 
