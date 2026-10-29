@@ -1,7 +1,9 @@
 -- Salta opening/ending/recap segnalati come capitoli (generati da AniSkip o presenti nel file).
--- TAB salta il segmento corrente; con auto=yes in script-opts/skip-chapters.conf salta da solo.
+-- TAB salta il segmento corrente, A attiva il salto automatico. Nella barra dei controlli di uosc
+-- compare un pulsante "Salta" solo mentre si è dentro un segmento saltabile.
 local mp = require 'mp'
 local options = require 'mp.options'
+local utils = require 'mp.utils'
 
 local opts = { auto = "no", delay = 3 }
 options.read_options(opts, "skip-chapters")
@@ -24,6 +26,18 @@ local function current_chapter()
     return idx, list[idx + 1], #list
 end
 
+-- Pulsante gestito da uosc: nascosto finché non serve
+local function set_button(ch)
+    local data = {
+        icon = "fast_forward",
+        hide = ch == nil,
+        badge = "TAB",
+        tooltip = ch and ("Salta: " .. ch.title) or "Salta",
+        command = "script-binding skip_chapters/skip-chapter",
+    }
+    mp.commandv("script-message-to", "uosc", "set-button", "skip", utils.format_json(data))
+end
+
 local function skip()
     local idx, ch, total = current_chapter()
     if not ch or not is_skippable(ch.title) then
@@ -42,7 +56,11 @@ local timer
 local function on_chapter()
     if timer then timer:kill(); timer = nil end
     local _, ch = current_chapter()
-    if not ch or not is_skippable(ch.title) then return end
+    if not ch or not is_skippable(ch.title) then
+        set_button(nil)
+        return
+    end
+    set_button(ch)
     if opts.auto == "yes" then
         mp.osd_message(ch.title .. " tra " .. opts.delay .. "s (TAB per saltare ora)", opts.delay)
         timer = mp.add_timeout(opts.delay, skip)
@@ -51,5 +69,18 @@ local function on_chapter()
     end
 end
 
+local function toggle_auto()
+    opts.auto = opts.auto == "yes" and "no" or "yes"
+    local _, ch = current_chapter()
+    if ch and is_skippable(ch.title) then
+        on_chapter()
+    else
+        mp.osd_message("Salto automatico di opening e ending: " .. (opts.auto == "yes" and "attivo" or "disattivato"))
+    end
+end
+
 mp.observe_property("chapter", "number", on_chapter)
+-- uosc potrebbe non essere ancora pronto al primo invio: lo ripetiamo a caricamento finito
+mp.register_event("file-loaded", on_chapter)
 mp.add_forced_key_binding("TAB", "skip-chapter", skip)
+mp.add_key_binding(nil, "toggle-auto", toggle_auto)

@@ -8,7 +8,9 @@ tramite un server MCP per aw-cli e StreamingCommunity.
 | Percorso | Cosa fa |
 | --- | --- |
 | `mpv/mpv.conf`, `mpv/input.conf` | gpu-next su Vulkan, decodifica VA-API (Intel Arc), shader ArtCNN, audio giapponese e sottotitoli italiani, profilo `[pip]` |
-| `mpv/scripts/skip-chapters.lua` | TAB salta i capitoli Opening, Ending e Recap; `auto=yes` in `script-opts/skip-chapters.conf` per saltarli da solo |
+| `mpv/scripts/skip-chapters.lua` | TAB salta Opening, Ending e Recap; compare un pulsante «Salta» nella barra solo dentro questi segmenti; `A` attiva il salto automatico |
+| `mpv/scripts/flow.lua`, `mpv/script-opts/flow.conf` | avviso «Ripreso da …» e, a fine episodio, chiusura dopo 8 secondi annullabile con ESC |
+| `mpv/script-opts/uosc.conf` | barra del tempo, controlli, palette e segmenti OP/ED evidenziati sulla timeline |
 | `mpv-pip/mpv.conf` | config alternativa (via `MPV_HOME`) per aprire anche `sc_stream` in popup |
 | `hypr/mpv-pip.lua` | regole Hyprland: finestra `AnimePip` fluttuante, fissata su tutti i desktop, 16:9, in basso a destra |
 | `bin/mpv-pip-toggle` | alterna una finestra mpv tra schermo intero e popup (tasto `P` in mpv, `SUPER+CTRL+P`); ignora le finestre che non sono mpv |
@@ -25,6 +27,25 @@ uosc, thumbfast e gli shader ArtCNN non sono nel repo: li scarica `install.sh`.
 ```
 
 Poi aggiungi `require("hypr.mpv-pip")` a `~/.config/hypr/hyprland.lua` ed esegui `hyprctl reload`.
+
+## Scorciatoie
+
+`?` apre l'elenco completo con ricerca; tasto destro o Invio apre il menu in italiano.
+
+| Tasto | Azione |
+| --- | --- |
+| Spazio | pausa |
+| ← → / Maiusc + ← → | ±5 s / ±30 s |
+| Ctrl + ← → | riga di sottotitoli precedente / successiva |
+| ↑ ↓ o rotella | volume |
+| TAB / `A` | salta OP/ED / salto automatico on-off |
+| `p` o doppio clic | popup ↔ schermo intero |
+| `f` | schermo intero |
+| `v`, `j`, `z` `x` | sottotitoli: mostra, traccia, ritardo |
+| `n` | volume uniforme (dialoghi e scene forti) |
+| Ctrl+a, `d`, Ctrl+i | upscaling ArtCNN, deband, interpolazione |
+| `s` / Ctrl+s | screenshot con / senza sottotitoli |
+| `<` `>` | episodio precedente / successivo |
 
 ## Popup
 
