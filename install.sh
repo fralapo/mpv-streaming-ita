@@ -29,6 +29,10 @@ rm -rf "$mpv_dir/scripts/uosc"
 cp -r "$tmp/uosc/scripts/uosc" "$mpv_dir/scripts/"
 cp "$tmp"/uosc/fonts/* "$mpv_dir/fonts/"
 chmod +x "$mpv_dir/scripts/uosc/bin/ziggy-linux"
+# Patch: nella barra in alto resta solo il pulsante di chiusura (niente riduci e ingrandisci)
+sed -i "s/^\tself.buttons = .*/\tself.buttons = {close}/" "$mpv_dir/scripts/uosc/elements/TopBar.lua"
+mkdir -p "$mpv_dir/script-opts"
+cp "$here"/mpv/script-opts/uosc.conf "$mpv_dir/script-opts/"
 
 echo "thumbfast..."
 curl -fsSL -o "$mpv_dir/scripts/thumbfast.lua" https://raw.githubusercontent.com/po5/thumbfast/master/thumbfast.lua

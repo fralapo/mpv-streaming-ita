@@ -47,6 +47,8 @@ from aw_cli.providers import create_provider  # noqa: E402
 PKG_DIR = Path(ut.__file__).parent          # config.toml e history.json del pacchetto
 CONFIG_PATH = PKG_DIR / "config.toml"
 MPV_COMPLETE_LIMIT = 90                     # soglia % per considerare completato un episodio
+PROGRESS_SAVE_SECS = 30                     # ogni quanto salvare il minutaggio durante la visione
+RESUME_REWIND_SECS = 3                      # di quanto tornare indietro quando si riprende
 LOG_PATH = Path.home() / ".local/share/aw-cli-tool/server.log"
 
 ut.console = Console(highlight=False)   # il patch sopra la manda su stderr
@@ -325,7 +327,19 @@ def _ipc_watch(sock_path: str, state: dict, proc: subprocess.Popen) -> None:
 def _track_playback(anime: Anime, ep, proc: subprocess.Popen, logfile: Path,
                     private: bool, history: History, token: str | None,
                     cfg: dict | None = None, ipc_state: dict | None = None) -> None:
-    proc.wait()
+    # Salvataggio periodico: se mpv o l'MCP si chiudono male si perde al massimo PROGRESS_SAVE_SECS
+    while True:
+        try:
+            proc.wait(timeout=PROGRESS_SAVE_SECS)
+            break
+        except subprocess.TimeoutExpired:
+            if private or not ipc_state or ipc_state.get("time-pos") is None:
+                continue
+            try:
+                ep.set_progress(int(ipc_state["time-pos"]))
+                history.update(anime, ep)
+            except Exception as e:
+                log(f"salvataggio periodico: {e}")
     try:
         text = logfile.read_text(encoding="utf-8", errors="replace")
     except Exception:
@@ -442,7 +456,7 @@ def t_play(args: dict) -> dict:
     sock = str(Path(tempfile.gettempdir()) / f"awcli-mpv-{int(time.time() * 1000)}.sock")
     cmd = [player, ep_url,
            f"--force-media-title={anime.name} - {ep}",
-           f"--start={ep.progress}",
+           f"--start={max(0, ep.progress - RESUME_REWIND_SECS)}",
            f"--input-ipc-server={sock}",
            "--profile=pip" if args.get("popup") else "--fullscreen", "--keep-open"]
     skip_info = "nessun dato AniSkip"
