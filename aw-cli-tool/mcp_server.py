@@ -951,9 +951,10 @@ def t_simkl_list(args: dict) -> dict:
 # --------------------------------------------------------------------------- #
 #  StreamingCommunity (helper in venv dedicato ~/.local/share/sc-tool)         #
 # --------------------------------------------------------------------------- #
-SC_PY = "/home/lapo/.local/share/sc-tool/venv/bin/python"
-SC_HELPER = "/home/lapo/.local/share/sc-tool/sc_helper.py"
-SC_RUN = "/home/lapo/.local/share/sc-tool/run"
+SC_DIR = Path.home() / ".local/share/sc-tool"
+SC_PY = str(SC_DIR / "venv/bin/python")
+SC_HELPER = str(SC_DIR / "sc_helper.py")
+SC_RUN = str(SC_DIR / "run")
 SC_PROC: dict[int, subprocess.Popen] = {}
 
 

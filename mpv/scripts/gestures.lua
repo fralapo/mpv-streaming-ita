@@ -223,7 +223,7 @@ end, { complex = true })
 mp.add_key_binding(nil, "double-click", function()
     if click_timer then click_timer:kill(); click_timer = nil end
     skip_up = true
-    mp.commandv("run", "/home/lapo/.local/bin/mpv-pip-toggle")
+    mp.commandv("run", os.getenv("HOME") .. "/.local/bin/mpv-pip-toggle")
 end)
 
 -- Modalità popup: si attiva da sola quando la finestra è più bassa di metà schermo,
