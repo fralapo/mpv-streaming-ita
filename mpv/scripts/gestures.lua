@@ -6,7 +6,8 @@ local mp = require 'mp'
 local options = require 'mp.options'
 local utils = require 'mp.utils'
 
-local opts = { boost = 2, hold_ms = 350, drag_px = 8, hints = 3, wheel_gap = 0.3, speed_step = 0.1, wheel_rate = 0.12, click_max = 0.25 }
+local opts = { boost = 2, hold_ms = 350, drag_px = 8, hints = 3, wheel_gap = 0.3, speed_step = 0.1, wheel_rate = 0.12, click_max = 0.25,
+                popup_sub_scale = 1.8 }
 options.read_options(opts, "gestures")
 
 local ACCENT = "&HF7A6CB&" -- cba6f7 in BGR, lo stesso viola di uosc
@@ -224,6 +225,17 @@ mp.add_key_binding(nil, "double-click", function()
     skip_up = true
     mp.commandv("run", "/home/lapo/.local/bin/mpv-pip-toggle")
 end)
+
+-- Popup: i sottotitoli seguono l'altezza della finestra e diventerebbero minuscoli, quindi si ingrandiscono
+local function adapt_subs()
+    local h = mp.get_property_number("osd-height", 0)
+    local screen = mp.get_property_number("display-height", 0)
+    if h <= 0 or screen <= 0 then return end
+    local small = not mp.get_property_bool("fullscreen") and h < screen * 0.5
+    mp.set_property_number("sub-scale", small and opts.popup_sub_scale or 1)
+end
+mp.observe_property("osd-height", "number", adapt_subs)
+mp.observe_property("fullscreen", "bool", adapt_subs)
 
 -- Suggerimento sui gesti nelle prime aperture
 mp.register_event("file-loaded", function()
