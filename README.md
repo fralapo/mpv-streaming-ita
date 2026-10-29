@@ -1,7 +1,7 @@
 # media-player-setup
 
 Setup personale per guardare anime, serie e film con mpv su Hyprland (Omarchy), pilotato da Claude Code
-tramite il server MCP `media` (aw-cli, StreamingCommunity, AniList, Simkl).
+tramite un server MCP per aw-cli e StreamingCommunity.
 
 ## Contenuto
 
@@ -15,9 +15,9 @@ tramite il server MCP `media` (aw-cli, StreamingCommunity, AniList, Simkl).
 | `mpv-pip/mpv.conf` | config alternativa (via `MPV_HOME`) per aprire anche `sc_stream` in popup |
 | `hypr/mpv-pip.lua` | regole Hyprland: finestra `AnimePip` fluttuante, fissata su tutti i desktop, 16:9, in basso a destra |
 | `bin/mpv-pip-toggle` | alterna una finestra mpv tra schermo intero e popup (tasto `P` in mpv, `SUPER+CTRL+P`); ignora le finestre che non sono mpv |
-| `mcp-server/mcp_server.py` | server MCP `media` (anime con aw-cli, film e serie con StreamingCommunity, AniList, Simkl): capitoli AniSkip, tracciamento preciso via IPC di mpv, parametro `popup` |
+| `aw-cli-tool/mcp_server.py` | server MCP per aw-cli: capitoli AniSkip, tracciamento preciso via IPC di mpv, parametro `popup` |
 | `sc-tool/sc_helper.py` | helper per StreamingCommunity usato dall'MCP |
-| `claude-skill/media/SKILL.md` | skill di Claude Code per riprodurre e tracciare |
+| `claude-skill/aw-cli/SKILL.md` | skill di Claude Code per riprodurre e tracciare |
 
 uosc, thumbfast e gli shader ArtCNN non sono nel repo: li scarica `install.sh`.
 
