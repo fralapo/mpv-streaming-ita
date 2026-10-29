@@ -5,7 +5,7 @@
 local mp = require 'mp'
 local options = require 'mp.options'
 
-local opts = { boost = 2, hold_ms = 350, drag_px = 8, hints = 3 }
+local opts = { boost = 2, hold_ms = 350, drag_px = 8, hints = 3, wheel_gap = 0.3 }
 options.read_options(opts, "gestures")
 
 local LADDER = { 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4 }
@@ -52,6 +52,26 @@ end
 
 mp.add_key_binding(nil, "speed-up", function() step_speed(1) end, { repeatable = true })
 mp.add_key_binding(nil, "speed-down", function() step_speed(-1) end, { repeatable = true })
+-- Rotella e touchpad: un gesto produce decine di eventi, quindi vale solo il primo.
+-- Il gesto finisce quando gli eventi si fermano per wheel_gap secondi.
+local function per_gesture(fn)
+    local last = 0
+    return function()
+        local now = mp.get_time()
+        if now - last > opts.wheel_gap then fn() end
+        last = now
+    end
+end
+
+mp.add_key_binding(nil, "speed-wheel-up", per_gesture(function() step_speed(1) end))
+mp.add_key_binding(nil, "speed-wheel-down", per_gesture(function() step_speed(-1) end))
+local function seek_by(sec)
+    mp.commandv("seek", tostring(sec), "exact")
+    mp.commandv("script-binding", "uosc/flash-timeline")
+end
+mp.add_key_binding(nil, "seek-wheel-back", per_gesture(function() seek_by(-5) end))
+mp.add_key_binding(nil, "seek-wheel-forward", per_gesture(function() seek_by(5) end))
+
 mp.add_key_binding(nil, "speed-reset", function()
     mp.set_property_number("speed", 1)
     show_speed()

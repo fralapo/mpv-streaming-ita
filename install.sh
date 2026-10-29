@@ -31,6 +31,8 @@ cp "$tmp"/uosc/fonts/* "$mpv_dir/fonts/"
 chmod +x "$mpv_dir/scripts/uosc/bin/ziggy-linux"
 # Patch: nella barra in alto resta solo il pulsante di chiusura (niente riduci e ingrandisci)
 sed -i "s/^\tself.buttons = .*/\tself.buttons = {close}/" "$mpv_dir/scripts/uosc/elements/TopBar.lua"
+# Patch: la rotella sul selettore di velocità fa uno scatto per gesto (il touchpad manda decine di eventi)
+sed -i "s|^function Speed:handle_wheel_up() .*|function Speed:handle_wheel_up() mp.commandv('script-binding', 'gestures/speed-wheel-up') end|; s|^function Speed:handle_wheel_down() .*|function Speed:handle_wheel_down() mp.commandv('script-binding', 'gestures/speed-wheel-down') end|" "$mpv_dir/scripts/uosc/elements/Speed.lua"
 mkdir -p "$mpv_dir/script-opts"
 cp "$here"/mpv/script-opts/uosc.conf "$here"/mpv/script-opts/flow.conf "$here"/mpv/script-opts/gestures.conf "$mpv_dir/script-opts/"
 

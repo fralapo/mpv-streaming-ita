@@ -41,7 +41,8 @@ Poi aggiungi `require("hypr.mpv-pip")` a `~/.config/hypr/hyprland.lua` ed esegui
 | `[` `]` | velocità a scatti 0,25 → 4×; `\` o Backspace = 1× |
 | 0 … 9 | salta a 0 … 90% |
 | Ctrl + ← → | riga di sottotitoli precedente / successiva |
-| ↑ ↓ o rotella | volume; scorrimento orizzontale = ±2 s; Maiusc + rotella = ±10 s |
+| ↑ ↓ o rotella | volume; scorrimento orizzontale = ±5 s per gesto; Maiusc + rotella = ±10 s |
+| rotella sul selettore di velocità | uno scatto per gesto del touchpad |
 | clic centrale | muto |
 | `p` o doppio clic | popup ↔ schermo intero |
 | trascina il video | sposta la finestra (nel popup) |
