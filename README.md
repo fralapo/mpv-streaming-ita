@@ -10,7 +10,7 @@ tramite un server MCP per aw-cli e StreamingCommunity.
 | `mpv/mpv.conf`, `mpv/input.conf` | gpu-next su Vulkan, decodifica VA-API (Intel Arc), shader ArtCNN, audio giapponese e sottotitoli italiani, profilo `[pip]` |
 | `mpv/scripts/skip-chapters.lua` | TAB salta Opening, Ending e Recap; compare un pulsante «Salta» nella barra solo dentro questi segmenti; `A` attiva il salto automatico |
 | `mpv/scripts/flow.lua`, `mpv/script-opts/flow.conf` | avviso «Ripreso da …» e, a fine episodio, chiusura dopo 8 secondi annullabile con ESC |
-| `mpv/scripts/gestures.lua`, `mpv/script-opts/gestures.conf` | velocità a scatti, tieni premuto per 2×, clic/doppio clic/trascina sul video, indicatore di velocità |
+| `mpv/scripts/gestures.lua`, `mpv/script-opts/gestures.conf` | velocità a passi di 0,1, tieni premuto per 2×, clic/doppio clic/trascina sul video, indicatore di velocità |
 | `mpv/script-opts/uosc.conf` | barra del tempo, controlli, palette e segmenti OP/ED evidenziati sulla timeline |
 | `mpv-pip/mpv.conf` | config alternativa (via `MPV_HOME`) per aprire anche `sc_stream` in popup |
 | `hypr/mpv-pip.lua` | regole Hyprland: finestra `AnimePip` fluttuante, fissata su tutti i desktop, 16:9, in basso a destra |
@@ -38,11 +38,11 @@ Poi aggiungi `require("hypr.mpv-pip")` a `~/.config/hypr/hyprland.lua` ed esegui
 | Spazio o clic sul video | pausa |
 | ← → / Maiusc + ← → | ±5 s / ±30 s |
 | tieni premuto → o il clic | 2× finché tieni, poi torna com'era (anche da pausa) |
-| `[` `]` | velocità a scatti 0,25 → 4×; `\` o Backspace = 1× |
+| `]` `+` `=` / `[` `-` | velocità +0,1 / −0,1 (da 0,1× a 4×); `\` o Backspace = 1×; pulsanti − e + accanto al selettore |
 | 0 … 9 | salta a 0 … 90% |
 | Ctrl + ← → | riga di sottotitoli precedente / successiva |
 | ↑ ↓ o rotella | volume; scorrimento orizzontale = ±5 s per gesto; Maiusc + rotella = ±10 s |
-| rotella sul selettore di velocità | uno scatto per gesto del touchpad |
+| rotella sul selettore di velocità | su = più veloce, giù = più lenta, 0,1 per scatto e al massimo ~8 scatti al secondo |
 | clic centrale | muto |
 | `p` o doppio clic | popup ↔ schermo intero |
 | trascina il video | sposta la finestra (nel popup) |

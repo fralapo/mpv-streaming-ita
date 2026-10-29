@@ -1,14 +1,13 @@
 -- Gesti e velocità.
--- Tastiera: [ ] scorrono una scala di velocità, \ o Backspace tornano a 1x, tenere premuto → va a 2x finché lo tieni.
+-- Tastiera: [ ] o - + cambiano la velocità di 0,1, \ o Backspace tornano a 1x, tenere premuto → va a 2x finché lo tieni.
 -- Mouse sul video: clic = pausa, doppio clic = popup, tenere premuto = 2x, premere e trascinare = sposta la finestra.
 -- Opzioni in script-opts/gestures.conf.
 local mp = require 'mp'
 local options = require 'mp.options'
 
-local opts = { boost = 2, hold_ms = 350, drag_px = 8, hints = 3, wheel_gap = 0.3 }
+local opts = { boost = 2, hold_ms = 350, drag_px = 8, hints = 3, wheel_gap = 0.3, speed_step = 0.1, wheel_rate = 0.12 }
 options.read_options(opts, "gestures")
 
-local LADDER = { 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4 }
 local ACCENT = "&HF7A6CB&" -- cba6f7 in BGR, lo stesso viola di uosc
 
 local function fmt_speed(s)
@@ -38,14 +37,11 @@ local function show_speed()
     mp.commandv("script-binding", "uosc/flash-speed")
 end
 
+-- Passi di 0,1 tra 0,1x e 4x, arrotondati per non accumulare errori (1,2999…)
 local function step_speed(dir)
     local s = mp.get_property_number("speed", 1)
-    local target = s
-    if dir > 0 then
-        for _, v in ipairs(LADDER) do if v > s + 0.001 then target = v; break end end
-    else
-        for i = #LADDER, 1, -1 do if LADDER[i] < s - 0.001 then target = LADDER[i]; break end end
-    end
+    local target = math.floor((s + dir * opts.speed_step) * 10 + 0.5) / 10
+    target = math.max(0.1, math.min(4, target))
     mp.set_property_number("speed", target)
     show_speed()
 end
@@ -63,8 +59,20 @@ local function per_gesture(fn)
     end
 end
 
-mp.add_key_binding(nil, "speed-wheel-up", per_gesture(function() step_speed(1) end))
-mp.add_key_binding(nil, "speed-wheel-down", per_gesture(function() step_speed(-1) end))
+-- Sulla velocità invece si continua a salire o scendere finché scorri, ma al massimo uno scatto ogni wheel_rate secondi
+local function throttled(fn)
+    local last = 0
+    return function()
+        local now = mp.get_time()
+        if now - last >= opts.wheel_rate then
+            last = now
+            fn()
+        end
+    end
+end
+
+mp.add_key_binding(nil, "speed-wheel-up", throttled(function() step_speed(1) end))
+mp.add_key_binding(nil, "speed-wheel-down", throttled(function() step_speed(-1) end))
 local function seek_by(sec)
     mp.commandv("seek", tostring(sec), "exact")
     mp.commandv("script-binding", "uosc/flash-timeline")
