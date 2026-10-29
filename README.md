@@ -60,7 +60,14 @@ Poi aggiungi `require("hypr.mpv-pip")` a `~/.config/hypr/hyprland.lua` ed esegui
 
 ## Popup
 
-- Si sposta con `SUPER` + trascina (tasto sinistro) e si ridimensiona con `SUPER` + tasto destro.
+Quando la finestra è più bassa di metà schermo, `gestures.lua` attiva la modalità popup (anche se ci si arriva con `P` o doppio clic, che ridimensionano solo la finestra):
+
+- barra ridotta: sottotitoli, salto OP/ED, −10 s, pausa, +10 s e «torna a schermo intero»; il resto resta nel menu del tasto destro;
+- sottotitoli 1,8 volte più grandi (`popup_sub_scale` in `gestures.conf`), interfaccia di uosc più compatta e senza titolo;
+- clic = pausa, doppio clic = schermo intero, trascina = sposta, rotella = volume; i tasti multimediali (Play/Pausa) funzionano da qualsiasi finestra tramite mpv-mpris;
+- le prime volte compare un suggerimento breve con questi gesti.
+
+- Si sposta anche con `SUPER` + trascina (tasto sinistro) e si ridimensiona con `SUPER` + tasto destro.
 - L'app-id `AnimePip` non deve contenere "mpv", altrimenti le regole di Omarchy lo centrano a 875x600.
 - Lo script di toggle agisce solo su finestre `mpv` o `AnimePip`, perché le finestre vere dell'utente non vanno toccate.
 

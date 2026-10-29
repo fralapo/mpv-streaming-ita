@@ -226,16 +226,44 @@ mp.add_key_binding(nil, "double-click", function()
     mp.commandv("run", "/home/lapo/.local/bin/mpv-pip-toggle")
 end)
 
--- Popup: i sottotitoli seguono l'altezza della finestra e diventerebbero minuscoli, quindi si ingrandiscono
-local function adapt_subs()
+-- Modalità popup: si attiva da sola quando la finestra è più bassa di metà schermo,
+-- sia aprendo col profilo pip sia passando al popup con P o doppio clic (che ridimensiona solo la finestra).
+-- user-data/pip guida la barra di uosc (uosc.conf mostra controlli diversi), il resto si adatta qui.
+local UOSC_POPUP = { scale = "0.8", timeline_size = "28", top_bar_size = "34", progress_size = "2", top_bar_title = "no" }
+local UOSC_FULL = { scale = "1", timeline_size = "34", top_bar_size = "40", progress_size = "3", top_bar_title = "yes" }
+local popup = nil
+
+local function show_popup_hint()
+    local path = mp.command_native({ "expand-path", "~~state/gestures-popup-hints" })
+    local f = io.open(path, "r")
+    local seen = f and tonumber(f:read("*l")) or 0
+    if f then f:close() end
+    if seen >= (tonumber(opts.hints) or 0) then return end
+    f = io.open(path, "w")
+    if f then f:write(tostring(seen + 1)); f:close() end
+    mp.osd_message("Clic pausa · doppio clic schermo intero\nTrascina per spostare · rotella volume\nTasti multimediali funzionano da ogni finestra", 5)
+end
+
+local function set_popup(on)
+    if on == popup then return end
+    popup = on
+    mp.set_property_native("user-data/pip", on)
+    mp.set_property_number("sub-scale", on and opts.popup_sub_scale or 1)
+    local values = on and UOSC_POPUP or UOSC_FULL
+    for k, v in pairs(values) do
+        mp.commandv("change-list", "script-opts", "append", "uosc-" .. k .. "=" .. v)
+    end
+    if on then show_popup_hint() end
+end
+
+local function check_popup()
     local h = mp.get_property_number("osd-height", 0)
     local screen = mp.get_property_number("display-height", 0)
     if h <= 0 or screen <= 0 then return end
-    local small = not mp.get_property_bool("fullscreen") and h < screen * 0.5
-    mp.set_property_number("sub-scale", small and opts.popup_sub_scale or 1)
+    set_popup(not mp.get_property_bool("fullscreen") and h < screen * 0.5)
 end
-mp.observe_property("osd-height", "number", adapt_subs)
-mp.observe_property("fullscreen", "bool", adapt_subs)
+mp.observe_property("osd-height", "number", check_popup)
+mp.observe_property("fullscreen", "bool", check_popup)
 
 -- Suggerimento sui gesti nelle prime aperture
 mp.register_event("file-loaded", function()
@@ -249,6 +277,7 @@ mp.register_event("file-loaded", function()
     f = io.open(path, "w")
     if f then f:write(tostring(seen + 1)); f:close() end
     mp.add_timeout(5, function()
+        if popup then return end -- nel popup c'è il suggerimento dedicato
         mp.osd_message("Tieni premuto → o il clic per 2×  ·  s d velocità, r = 1×  ·  tasto destro menu  ·  ? scorciatoie", 6)
     end)
 end)
