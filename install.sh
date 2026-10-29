@@ -11,7 +11,9 @@ mkdir -p "$mpv_dir"/{scripts,fonts,shaders,script-opts} ~/.local/bin ~/.config/h
 
 install -m 644 "$here"/mpv/mpv.conf "$here"/mpv/input.conf "$mpv_dir"/
 install -m 644 "$here"/mpv/scripts/skip-chapters.lua "$here"/mpv/scripts/flow.lua "$here"/mpv/scripts/gestures.lua "$here"/mpv/scripts/hls-subs.lua "$here"/mpv/scripts/progress.lua "$here"/mpv/scripts/quality.lua "$mpv_dir"/scripts/
-install -m 755 "$here"/bin/mpv-pip-toggle ~/.local/bin/
+install -m 755 "$here"/bin/mpv-pip-toggle "$here"/bin/mpv-theme ~/.local/bin/
+mkdir -p "$mpv_dir/themes"
+install -m 644 "$here"/themes/*.conf "$mpv_dir/themes/"
 install -m 644 "$here"/hypr/mpv-pip.lua ~/.config/hypr/
 
 # Config del popup per sc_stream (MPV_HOME): include la config principale e attiva il profilo pip
@@ -35,6 +37,8 @@ sed -i "s/^\tself.buttons = .*/\tself.buttons = {close}/" "$mpv_dir/scripts/uosc
 sed -i "s|^function Speed:handle_wheel_up() .*|function Speed:handle_wheel_up() mp.commandv('script-binding', 'gestures/speed-wheel-down') end|; s|^function Speed:handle_wheel_down() .*|function Speed:handle_wheel_down() mp.commandv('script-binding', 'gestures/speed-wheel-up') end|" "$mpv_dir/scripts/uosc/elements/Speed.lua"
 mkdir -p "$mpv_dir/script-opts"
 cp "$here"/mpv/script-opts/uosc.conf "$here"/mpv/script-opts/flow.conf "$here"/mpv/script-opts/gestures.conf "$mpv_dir/script-opts/"
+# Tema: THEME=nord ./install.sh per sceglierlo, altrimenti resta quello già in uso (o lo standard)
+~/.local/bin/mpv-theme "${THEME:-$(cat "$mpv_dir/themes/current" 2>/dev/null || echo standard)}"
 
 echo "thumbfast..."
 curl -fsSL -o "$mpv_dir/scripts/thumbfast.lua" https://raw.githubusercontent.com/po5/thumbfast/master/thumbfast.lua

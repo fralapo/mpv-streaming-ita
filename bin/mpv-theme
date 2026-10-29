@@ -1,0 +1,27 @@
+#!/bin/bash
+# Cambia i colori di mpv: barra e menu di uosc, segmenti OP/ED, indicatore della velocità.
+# mpv-theme          elenca i temi (* = quello attivo)
+# mpv-theme nord     applica il tema; vale dalla prossima apertura di mpv
+set -euo pipefail
+
+themes=~/.config/mpv/themes
+opts=~/.config/mpv/script-opts
+current=$(cat "$themes/current" 2>/dev/null || echo standard)
+
+if [[ $# -eq 0 ]]; then
+    for f in "$themes"/*.conf; do
+        n=$(basename "$f" .conf)
+        mark=" "; [[ $n == "$current" ]] && mark="*"
+        printf '%s %-12s %s\n' "$mark" "$n" "$(sed -n '1s/^# *//p' "$f")"
+    done
+    exit
+fi
+
+f="$themes/$1.conf"
+[[ -f $f ]] || { echo "Tema sconosciuto: $1 (mpv-theme senza argomenti per l'elenco)" >&2; exit 1; }
+get() { sed -n "s/^$1=//p" "$f"; }
+
+sed -i "s|^color=.*|color=$(get color)|; s|^chapter_ranges=.*|chapter_ranges=$(get chapter_ranges)|" "$opts/uosc.conf"
+sed -i "s|^accent=.*|accent=$(get accent)|; s|^outline=.*|outline=$(get outline)|" "$opts/gestures.conf"
+echo "$1" > "$themes/current"
+echo "Tema $1 applicato: vale dalla prossima apertura di mpv"

@@ -7,10 +7,14 @@ local options = require 'mp.options'
 local utils = require 'mp.utils'
 
 local opts = { boost = 2, hold_ms = 350, drag_px = 8, hints = 3, wheel_gap = 0.3, speed_step = 0.1, wheel_rate = 0.12, click_max = 0.25,
-                popup_sub_scale = 2.1 }
+                popup_sub_scale = 2.1, accent = "ffffff", outline = "000000" }
 options.read_options(opts, "gestures")
 
-local ACCENT = "&HF7A6CB&" -- cba6f7 in BGR, lo stesso viola di uosc
+-- I colori arrivano come RRGGBB (gli stessi di uosc, li imposta mpv-theme); ASS li vuole in BGR
+local function ass_color(hex)
+    return "&H" .. hex:sub(5, 6) .. hex:sub(3, 4) .. hex:sub(1, 2) .. "&"
+end
+local ACCENT, OUTLINE = ass_color(opts.accent), ass_color(opts.outline)
 
 local function fmt_speed(s)
     local txt = string.format("%.2f", s):gsub("0+$", ""):gsub("%.$", "")
@@ -29,7 +33,7 @@ local function update_badge()
         return
     end
     local label = boosting and ("▶▶ " .. fmt_speed(s)) or fmt_speed(s)
-    badge.data = string.format("{\\an9\\pos(1885,95)\\fs38\\bord2.5\\shad0\\1c%s\\3c&H11111B&}%s", ACCENT, label)
+    badge.data = string.format("{\\an9\\pos(1885,95)\\fs38\\bord2.5\\shad0\\1c%s\\3c%s}%s", ACCENT, OUTLINE, label)
     badge:update()
 end
 mp.observe_property("speed", "number", update_badge)

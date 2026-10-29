@@ -21,6 +21,7 @@ tramite un server MCP per aw-cli e StreamingCommunity.
 | `aw-cli-tool/mcp_server.py` | server MCP per aw-cli: capitoli AniSkip, tracciamento preciso via IPC di mpv, parametro `popup` |
 | `sc-tool/sc_helper.py` | helper per StreamingCommunity usato dall'MCP |
 | `claude-skill/aw-cli/SKILL.md` | skill di Claude Code per riprodurre e tracciare |
+| `themes/*.conf`, `bin/mpv-theme` | temi di colore per barra, menu e indicatore di velocità, e il comando per cambiarli |
 
 uosc, thumbfast e gli shader ArtCNN non sono nel repo: li scarica `install.sh`.
 
@@ -31,6 +32,29 @@ uosc, thumbfast e gli shader ArtCNN non sono nel repo: li scarica `install.sh`.
 ```
 
 Poi aggiungi `require("hypr.mpv-pip")` a `~/.config/hypr/hyprland.lua` ed esegui `hyprctl reload`.
+
+## Temi
+
+Il tema predefinito è `standard`: bianco su nero, con le bande attorno al video nere (su un OLED restano spente).
+Per sceglierne un altro:
+
+```
+mpv-theme              # elenco, * indica quello attivo
+mpv-theme tokyo-night  # vale dalla prossima apertura di mpv
+THEME=nord ./install.sh
+```
+
+| Tema | Aspetto |
+|---|---|
+| `standard` | bianco su nero |
+| `catppuccin` | viola chiaro su blu notte |
+| `tokyo-night` | blu elettrico su blu scuro |
+| `nord` | azzurro ghiaccio su grigio ardesia |
+| `gruvbox` | giallo caldo su marrone scuro |
+| `rose-pine` | rosa antico su viola notte |
+| `dracula` | viola acceso su grigio scuro |
+
+Reinstallando si mantiene il tema già in uso. Per crearne uno nuovo copia un file di `~/.config/mpv/themes/` con un altro nome e cambia i colori (RRGGBB).
 
 ## Scorciatoie
 
