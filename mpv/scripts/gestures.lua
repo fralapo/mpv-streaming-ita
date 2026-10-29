@@ -1,11 +1,11 @@
 -- Gesti e velocità.
 -- Tastiera: s rallenta e d accelera di 0,1, r torna a 1x (anche [ ] - + \ e Backspace), tenere premuto → va a 2x finché lo tieni.
--- Mouse sul video: clic = pausa, doppio clic = popup, tenere premuto = 2x, premere e trascinare = sposta la finestra.
+-- Mouse sul video: clic rapido = pausa, doppio clic = popup, tenere premuto = 2x (solo a schermo intero), premere e trascinare = sposta il popup.
 -- Opzioni in script-opts/gestures.conf.
 local mp = require 'mp'
 local options = require 'mp.options'
 
-local opts = { boost = 2, hold_ms = 350, drag_px = 8, hints = 3, wheel_gap = 0.3, speed_step = 0.1, wheel_rate = 0.12 }
+local opts = { boost = 2, hold_ms = 350, drag_px = 8, hints = 3, wheel_gap = 0.3, speed_step = 0.1, wheel_rate = 0.12, click_max = 0.25 }
 options.read_options(opts, "gestures")
 
 local ACCENT = "&HF7A6CB&" -- cba6f7 in BGR, lo stesso viola di uosc
@@ -152,18 +152,28 @@ local function release_mouse()
     down_pos = nil
 end
 
+local down_time, windowed = 0, false
+
 mp.add_key_binding(nil, "click", function(e)
     if e.event == "down" then
         down_pos = mp.get_property_native("mouse-pos")
+        down_time = mp.get_time()
         mouse_held, mouse_drag = false, false
         mp.observe_property("mouse-pos", "native", on_mouse_move)
-        hold_timer = mp.add_timeout(opts.hold_ms / 1000 + 0.1, function()
-            hold_timer = nil
-            mouse_held = true
-            boost_on()
-        end)
+        -- Nel popup premere a lungo serve a spostarlo: il 2x tenendo premuto vale solo a schermo intero
+        windowed = not mp.get_property_bool("fullscreen")
+        if not windowed then
+            hold_timer = mp.add_timeout(opts.hold_ms / 1000 + 0.1, function()
+                hold_timer = nil
+                mouse_held = true
+                boost_on()
+            end)
+        end
     elseif e.event == "up" then
         release_mouse()
+        -- Nel popup è il compositor a spostare la finestra e il cursore resta fermo rispetto al video:
+        -- una pressione più lunga di un clic rapido è uno spostamento, non una pausa
+        if windowed and mp.get_time() - down_time > opts.click_max then mouse_drag = true end
         if mouse_held then
             boost_off()
         elseif skip_up then

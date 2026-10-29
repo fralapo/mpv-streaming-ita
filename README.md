@@ -35,9 +35,9 @@ Poi aggiungi `require("hypr.mpv-pip")` a `~/.config/hypr/hyprland.lua` ed esegui
 
 | Tasto / gesto | Azione |
 | --- | --- |
-| Spazio o clic sul video | pausa |
+| Spazio o clic rapido sul video | pausa (nel popup una presa più lunga di 0,25 s è uno spostamento, non una pausa) |
 | ← → / Maiusc + ← → | ±5 s / ±30 s |
-| tieni premuto → o il clic | 2× finché tieni, poi torna com'era (anche da pausa) |
+| tieni premuto → (o il clic, a schermo intero) | 2× finché tieni, poi torna com'era (anche da pausa) |
 | `d` / `s` / `r` | velocità +0,1 / −0,1 / torna a 1× (da 0,1× a 4×); anche `]` `+` `[` `-`, e pulsanti − e + accanto al selettore |
 | 0 … 9 | salta a 0 … 90% |
 | Ctrl + ← → | riga di sottotitoli precedente / successiva |
