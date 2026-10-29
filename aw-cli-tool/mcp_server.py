@@ -458,6 +458,7 @@ def t_play(args: dict) -> dict:
            f"--force-media-title={anime.name} - {ep}",
            f"--start={max(0, ep.progress - RESUME_REWIND_SECS)}",
            f"--input-ipc-server={sock}",
+           "--profile=anime",
            "--profile=pip" if args.get("popup") else "--fullscreen", "--keep-open"]
     skip_info = "nessun dato AniSkip"
     try:
