@@ -13,6 +13,7 @@ tramite un server MCP per aw-cli e StreamingCommunity.
 | `mpv/scripts/gestures.lua`, `mpv/script-opts/gestures.conf` | velocità a passi di 0,1, tieni premuto per 2×, clic/doppio clic/trascina sul video, indicatore di velocità |
 | `mpv/scripts/hls-subs.lua` | carica come file esterno i sottotitoli italiani degli stream HLS a segmento unico (StreamingCommunity), così le battute non si ripetono |
 | `mpv/scripts/progress.lua` | per StreamingCommunity: salva il minuto ogni 15 s e alla chiusura, riparte da lì; il server MCP segna su Simkl solo oltre il 90% |
+| `mpv/scripts/quality.lua` | qualità degli stream HLS: automatica (non oltre ciò che la finestra mostra, scende se il buffer si svuota, risale con rete buona), a mano con Q o il pulsante HD |
 | `mpv/script-opts/uosc.conf` | barra del tempo, controlli, palette e segmenti OP/ED evidenziati sulla timeline |
 | `mpv-pip/mpv.conf` | config alternativa (via `MPV_HOME`) per aprire anche `sc_stream` in popup |
 | `hypr/mpv-pip.lua` | regole Hyprland: finestra `AnimePip` fluttuante, fissata su tutti i desktop, 16:9, in basso a destra |
@@ -38,6 +39,7 @@ Poi aggiungi `require("hypr.mpv-pip")` a `~/.config/hypr/hyprland.lua` ed esegui
 | Tasto / gesto | Azione |
 | --- | --- |
 | Spazio o clic rapido sul video | pausa (nel popup una presa più lunga di 0,25 s è uno spostamento, non una pausa) |
+| Q o pulsante HD nella barra | qualità video: automatica (default) o 1080p / 720p / 480p a scelta |
 | ← → / Maiusc + ← → | ±5 s / ±30 s |
 | tieni premuto → (o il clic, a schermo intero) | 2× finché tieni, poi torna com'era (anche da pausa) |
 | `d` / `s` / `r` | velocità +0,1 / −0,1 / torna a 1× (da 0,1× a 4×); anche `]` `+` `[` `-`, e pulsanti − e + accanto al selettore |
