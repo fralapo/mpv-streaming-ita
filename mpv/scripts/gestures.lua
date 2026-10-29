@@ -7,7 +7,7 @@ local options = require 'mp.options'
 local utils = require 'mp.utils'
 
 local opts = { boost = 2, hold_ms = 350, drag_px = 8, hints = 3, wheel_gap = 0.3, speed_step = 0.1, wheel_rate = 0.12, click_max = 0.25,
-                popup_sub_scale = 1.8 }
+                popup_sub_scale = 2.1 }
 options.read_options(opts, "gestures")
 
 local ACCENT = "&HF7A6CB&" -- cba6f7 in BGR, lo stesso viola di uosc

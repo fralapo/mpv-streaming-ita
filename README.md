@@ -63,7 +63,7 @@ Poi aggiungi `require("hypr.mpv-pip")` a `~/.config/hypr/hyprland.lua` ed esegui
 Quando la finestra è più bassa di metà schermo, `gestures.lua` attiva la modalità popup (anche se ci si arriva con `P` o doppio clic, che ridimensionano solo la finestra):
 
 - barra ridotta: sottotitoli, salto OP/ED, −10 s, pausa, +10 s e «torna a schermo intero»; il resto resta nel menu del tasto destro;
-- sottotitoli 1,8 volte più grandi (`popup_sub_scale` in `gestures.conf`), interfaccia di uosc più compatta e senza titolo;
+- sottotitoli 2,1 volte più grandi (`popup_sub_scale` in `gestures.conf`), interfaccia di uosc più compatta e senza titolo;
 - clic = pausa, doppio clic = schermo intero, trascina = sposta, rotella = volume; i tasti multimediali (Play/Pausa) funzionano da qualsiasi finestra tramite mpv-mpris;
 - le prime volte compare un suggerimento breve con questi gesti.
 
