@@ -38,11 +38,11 @@ Poi aggiungi `require("hypr.mpv-pip")` a `~/.config/hypr/hyprland.lua` ed esegui
 | Spazio o clic sul video | pausa |
 | ← → / Maiusc + ← → | ±5 s / ±30 s |
 | tieni premuto → o il clic | 2× finché tieni, poi torna com'era (anche da pausa) |
-| `]` `+` `=` / `[` `-` | velocità +0,1 / −0,1 (da 0,1× a 4×); `\` o Backspace = 1×; pulsanti − e + accanto al selettore |
+| `d` / `s` / `r` | velocità +0,1 / −0,1 / torna a 1× (da 0,1× a 4×); anche `]` `+` `[` `-`, e pulsanti − e + accanto al selettore |
 | 0 … 9 | salta a 0 … 90% |
 | Ctrl + ← → | riga di sottotitoli precedente / successiva |
 | ↑ ↓ o rotella | volume; scorrimento orizzontale = ±5 s per gesto; Maiusc + rotella = ±10 s |
-| rotella sul selettore di velocità | su = più veloce, giù = più lenta, 0,1 per scatto e al massimo ~8 scatti al secondo |
+| rotella sul selettore di velocità | su = più lenta, giù = più veloce, 0,1 per scatto e al massimo ~8 scatti al secondo |
 | clic centrale | muto |
 | `p` o doppio clic | popup ↔ schermo intero |
 | trascina il video | sposta la finestra (nel popup) |
@@ -50,8 +50,8 @@ Poi aggiungi `require("hypr.mpv-pip")` a `~/.config/hypr/hyprland.lua` ed esegui
 | TAB / `A` | salta OP/ED / salto automatico on-off |
 | `v`, `j`, `z` `x` | sottotitoli: mostra, traccia, ritardo |
 | `n` | volume uniforme (dialoghi e scene forti) |
-| Ctrl+a, `d`, Ctrl+i | upscaling ArtCNN, deband, interpolazione |
-| `s` / Ctrl+s | screenshot con / senza sottotitoli |
+| Ctrl+a, Ctrl+d, Ctrl+i | upscaling ArtCNN, deband, interpolazione |
+| Ctrl+s / Ctrl+Maiusc+s | screenshot con / senza sottotitoli |
 | `<` `>` | episodio precedente / successivo |
 
 ## Popup

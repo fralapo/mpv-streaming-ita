@@ -1,5 +1,5 @@
 -- Gesti e velocità.
--- Tastiera: [ ] o - + cambiano la velocità di 0,1, \ o Backspace tornano a 1x, tenere premuto → va a 2x finché lo tieni.
+-- Tastiera: s rallenta e d accelera di 0,1, r torna a 1x (anche [ ] - + \ e Backspace), tenere premuto → va a 2x finché lo tieni.
 -- Mouse sul video: clic = pausa, doppio clic = popup, tenere premuto = 2x, premere e trascinare = sposta la finestra.
 -- Opzioni in script-opts/gestures.conf.
 local mp = require 'mp'
@@ -197,6 +197,6 @@ mp.register_event("file-loaded", function()
     f = io.open(path, "w")
     if f then f:write(tostring(seen + 1)); f:close() end
     mp.add_timeout(5, function()
-        mp.osd_message("Tieni premuto → o il clic per 2×  ·  [ ] velocità  ·  tasto destro menu  ·  ? scorciatoie", 6)
+        mp.osd_message("Tieni premuto → o il clic per 2×  ·  s d velocità, r = 1×  ·  tasto destro menu  ·  ? scorciatoie", 6)
     end)
 end)
