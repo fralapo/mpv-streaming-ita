@@ -957,9 +957,34 @@ SC_RUN = "/home/lapo/.local/share/sc-tool/run"
 SC_PROC: dict[int, subprocess.Popen] = {}
 
 
+SC_PROGRESS = Path.home() / ".local/share/aw-cli-tool/sc_progress.json"
+SC_WATCHED_PCT = 90  # oltre questa percentuale l'episodio o il film conta come visto
+
+
+def _sc_key(query: str, season, episode) -> str:
+    return f"{query.casefold().strip()}|{season or ''}|{episode or ''}"
+
+
+def _sc_progress_load() -> dict:
+    try:
+        return json.loads(SC_PROGRESS.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _sc_progress_save(key: str, value: dict | None) -> None:
+    data = _sc_progress_load()
+    if value is None:
+        data.pop(key, None)
+    else:
+        data[key] = value
+    SC_PROGRESS.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
 def _sc_json(tail: str) -> dict | None:
     for line in reversed(tail.splitlines()):
-        line = line.strip()
+        # l'helper pulisce il terminale: la riga JSON può iniziare con sequenze ANSI
+        line = re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", line).strip()
         if line.startswith("{"):
             try:
                 return json.loads(line)
@@ -1067,13 +1092,24 @@ def t_sc_stream(args: dict) -> dict:
         cmd += ["--season", str(season)]
     if episode is not None:
         cmd += ["--episode", str(episode)]
+    # progress.lua in mpv scrive la posizione qui; MPV_START_AT riprende da dove eri rimasto
+    key = _sc_key(query, season, episode)
+    progress_file = Path(tempfile.gettempdir()) / f"sc-progress-{int(time.time() * 1000)}.json"
+    env = {"MPV_PROGRESS_FILE": str(progress_file)}
+    saved = _sc_progress_load().get(key) or {}
+    resume = max(0, int(saved.get("pos", 0)) - RESUME_REWIND_SECS)
+    if resume > 0:
+        env["MPV_START_AT"] = str(resume)
     # popup: mpv legge la config di ~/.config/mpv-pip (profilo pip, finestra fissa in basso a destra)
-    env = {"MPV_HOME": str(Path.home() / ".config/mpv-pip")} if args.get("popup") else None
+    if args.get("popup"):
+        env["MPV_HOME"] = str(Path.home() / ".config/mpv-pip")
     res = _sc_run_or_report(cmd, "stream", env)
     if res.get("ok") and res.get("pid"):
         proc = SC_PROC.get(res["pid"])
         if proc is not None:
-            safe(_sc_watch_simkl, proc, cfg)
+            safe(_sc_watch_simkl, proc, cfg, key, progress_file)
+        if resume > 0:
+            res["ripresa"] = f"riparte da {resume // 60}:{resume % 60:02d}"
     return res
 
 
@@ -1089,9 +1125,30 @@ def t_sc_download(args: dict) -> dict:
     return _sc_run_or_report(cmd, "download")
 
 
-def _sc_watch_simkl(p: subprocess.Popen, cfg: dict) -> None:
-    """A fine stream SC (player chiuso), segna su Simkl l'episodio/film visto."""
-    p.wait()
+def _sc_read_progress(progress_file: Path) -> dict | None:
+    try:
+        return json.loads(progress_file.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
+def _sc_watch_simkl(p: subprocess.Popen, cfg: dict, key: str, progress_file: Path) -> None:
+    """Durante lo stream SC salva la posizione; a player chiuso segna su Simkl
+    l'episodio/film solo se visto oltre SC_WATCHED_PCT, altrimenti ricorda il minuto."""
+    while p.poll() is None:
+        time.sleep(PROGRESS_SAVE_SECS)
+        st = _sc_read_progress(progress_file)
+        if st and st.get("percent", 0) < SC_WATCHED_PCT:
+            _sc_progress_save(key, {"pos": st["pos"], "duration": st["duration"], "at": time.time()})
+    st = _sc_read_progress(progress_file) or {}
+    progress_file.unlink(missing_ok=True)
+    pct = float(st.get("percent", 0))
+    if not st.get("eof") and pct < SC_WATCHED_PCT:
+        if st.get("pos"):
+            _sc_progress_save(key, {"pos": st["pos"], "duration": st["duration"], "at": time.time()})
+            log(f"sc progresso {key}: {int(st['pos'])}s ({pct:.0f}%), non segnato su Simkl")
+        return
+    _sc_progress_save(key, None)
     try:
         out_p = getattr(p, "_sc_out", None)
         txt = out_p.read_text(encoding="utf-8", errors="replace") if out_p else ""

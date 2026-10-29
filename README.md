@@ -12,6 +12,7 @@ tramite un server MCP per aw-cli e StreamingCommunity.
 | `mpv/scripts/flow.lua`, `mpv/script-opts/flow.conf` | avviso «Ripreso da …» e, a fine episodio, chiusura dopo 8 secondi annullabile con ESC |
 | `mpv/scripts/gestures.lua`, `mpv/script-opts/gestures.conf` | velocità a passi di 0,1, tieni premuto per 2×, clic/doppio clic/trascina sul video, indicatore di velocità |
 | `mpv/scripts/hls-subs.lua` | carica come file esterno i sottotitoli italiani degli stream HLS a segmento unico (StreamingCommunity), così le battute non si ripetono |
+| `mpv/scripts/progress.lua` | per StreamingCommunity: salva il minuto ogni 15 s e alla chiusura, riparte da lì; il server MCP segna su Simkl solo oltre il 90% |
 | `mpv/script-opts/uosc.conf` | barra del tempo, controlli, palette e segmenti OP/ED evidenziati sulla timeline |
 | `mpv-pip/mpv.conf` | config alternativa (via `MPV_HOME`) per aprire anche `sc_stream` in popup |
 | `hypr/mpv-pip.lua` | regole Hyprland: finestra `AnimePip` fluttuante, fissata su tutti i desktop, 16:9, in basso a destra |

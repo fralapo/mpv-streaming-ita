@@ -10,7 +10,7 @@ pip_dir=~/.config/mpv-pip
 mkdir -p "$mpv_dir"/{scripts,fonts,shaders,script-opts} ~/.local/bin ~/.config/hypr ~/Pictures/mpv
 
 install -m 644 "$here"/mpv/mpv.conf "$here"/mpv/input.conf "$mpv_dir"/
-install -m 644 "$here"/mpv/scripts/skip-chapters.lua "$here"/mpv/scripts/flow.lua "$here"/mpv/scripts/gestures.lua "$here"/mpv/scripts/hls-subs.lua "$mpv_dir"/scripts/
+install -m 644 "$here"/mpv/scripts/skip-chapters.lua "$here"/mpv/scripts/flow.lua "$here"/mpv/scripts/gestures.lua "$here"/mpv/scripts/hls-subs.lua "$here"/mpv/scripts/progress.lua "$mpv_dir"/scripts/
 install -m 755 "$here"/bin/mpv-pip-toggle ~/.local/bin/
 install -m 644 "$here"/hypr/mpv-pip.lua ~/.config/hypr/
 
