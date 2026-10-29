@@ -1,0 +1,47 @@
+#!/bin/bash
+# Alterna la finestra attiva tra schermo intero e popup 16:9 in basso a destra, fissato su tutti i desktop.
+# Il popup nativo (app-id AnimePip) è già gestito dalle regole in ~/.config/hypr/mpv-pip.lua.
+
+# Senza argomenti agisce sulla finestra attiva; con un indirizzo agisce solo su quella finestra
+if [[ -n $1 ]]; then
+  active=$(hyprctl clients -j | jq -c --arg a "$1" '.[] | select(.address == $a)')
+  [[ -z $active ]] && exit 0
+else
+  active=$(hyprctl activewindow -j)
+fi
+addr=$(jq -r '.address' <<<"$active")
+[[ -z $addr || $addr == null ]] && exit 0
+# Agisce solo sul player: qualsiasi altra finestra attiva viene lasciata com'è
+[[ $(jq -r '.class' <<<"$active") =~ ^(mpv|AnimePip)$ ]] || exit 0
+window="address:$addr"
+
+dispatch() { hyprctl dispatch "$1" >/dev/null 2>&1; }
+
+if [[ $(jq -r '.pinned' <<<"$active") == "true" ]]; then
+  # Popup -> torna grande: sgancia dai desktop e va a schermo intero
+  dispatch "hl.dsp.window.pin({ window = \"$window\" })"
+  dispatch "hl.dsp.window.fullscreen({ window = \"$window\", mode = \"fullscreen\" })"
+  exit 0
+fi
+
+mon=$(hyprctl monitors -j | jq -c '.[] | select(.focused)')
+mw=$(jq -r '(.width / .scale) | floor' <<<"$mon")
+mh=$(jq -r '(.height / .scale) | floor' <<<"$mon")
+mx=$(jq -r '.x' <<<"$mon")
+my=$(jq -r '.y' <<<"$mon")
+
+w=$((mw * 32 / 100))
+h=$((w * 9 / 16))
+x=$((mx + mw - w - 40))
+y=$((my + mh - h - 40))
+
+# Esce dal fullscreen, altrimenti float e resize non si applicano
+if [[ $(jq -r '.fullscreen' <<<"$active") != "0" ]]; then
+  dispatch "hl.dsp.window.fullscreen({ window = \"$window\", mode = \"fullscreen\", action = \"unset\" })"
+  sleep 0.3
+fi
+dispatch "hl.dsp.window.float({ window = \"$window\", action = \"enable\" })"
+dispatch "hl.dsp.window.resize({ window = \"$window\", x = $w, y = $h })"
+dispatch "hl.dsp.window.move({ window = \"$window\", x = $x, y = $y })"
+dispatch "hl.dsp.window.pin({ window = \"$window\" })"
+dispatch "hl.dsp.window.alter_zorder({ window = \"$window\", mode = \"top\" })"

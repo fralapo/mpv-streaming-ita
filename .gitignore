@@ -1,0 +1,7 @@
+__pycache__/
+*.log
+*.sock
+mpv/scripts/uosc/
+mpv/scripts/thumbfast.lua
+mpv/fonts/
+mpv/shaders/
