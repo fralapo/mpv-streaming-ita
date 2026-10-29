@@ -1,16 +1,16 @@
 ---
-name: aw-cli
+name: media
 description: Riproduci, cerca, scarichi e tieni traccia di anime, serie TV e film tramite aw-cli (AnimeWorld/AnimeUnity) e StreamingCommunity tool. Usa quando l'utente chiede di "guardare/riprodurre" un titolo, un "episodio", di "continuare a guardare", "scarica episodi/film di", oppure parla di watchlist, AniList, Mal-Sync, cronologia di visione, StreamingCommunity.
 ---
 
-# aw-cli + StreamingCommunity: guarda e sincronizza contenuti
+# media: anime, film e serie da guardare e sincronizzare
 
 aw-cli e lo strumento StreamingCommunity (vixsrc) sono installati e configurati.
 Entrambi sono esposti agli agenti come **strumenti MCP** (server locale
-`~/.local/share/aw-cli-tool/mcp_server.py`). La watchlist di anime è sincronizzata
+`~/.local/share/media-mcp/mcp_server.py`). La watchlist di anime è sincronizzata
 su **AniList** (punto di convergenza unico; nel browser la registra Mal-Sync).
 
-## Strumenti MCP disponibili (prefisso `mcp__aw-cli__`)
+## Strumenti MCP disponibili (prefisso `mcp__media__`)
 
 Trova e usa i tool tramite la ricerca strumenti.
 
@@ -70,7 +70,7 @@ Regole:
 
 ## File utili
 
-- Server MCP: `~/.local/share/aw-cli-tool/mcp_server.py` (log: `server.log` nella stessa cartella)
+- Server MCP: `~/.local/share/media-mcp/mcp_server.py` (log: `server.log` nella stessa cartella)
 - Helper StreamingCommunity: `~/.local/share/sc-tool/sc_helper.py` (venv: `~/.local/share/sc-tool/venv`; cartella di lavoro/config/download: `~/.local/share/sc-tool/run`; log: `run.log`)
 - Config aw-cli: `~/.local/share/uv/tools/aw-cli/lib/python3.14/site-packages/aw_cli/config.toml`
 - Download: `~/Videos/Anime` (anime) e `~/Videos/StreamingCommunity/{Film,Serie TV}` (film/serie)

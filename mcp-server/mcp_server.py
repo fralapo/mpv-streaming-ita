@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MCP server (stdio) che espone aw-cli come strumento per agenti (pi, Claude Code, ecc.).
+MCP server (stdio) "media": anime con aw-cli, film e serie con StreamingCommunity, AniList/Simkl e il player mpv, esposti come strumenti per agenti (pi, Claude Code, ecc.).
 
 Usa direttamente l'API Python del pacchetto aw_cli (nessuna interazione fzf/TTY),
 quindi gli agenti possono cercare, riprodurre, scaricare e sincronizzare.
@@ -49,7 +49,7 @@ CONFIG_PATH = PKG_DIR / "config.toml"
 MPV_COMPLETE_LIMIT = 90                     # soglia % per considerare completato un episodio
 PROGRESS_SAVE_SECS = 30                     # ogni quanto salvare il minutaggio durante la visione
 RESUME_REWIND_SECS = 3                      # di quanto tornare indietro quando si riprende
-LOG_PATH = Path.home() / ".local/share/aw-cli-tool/server.log"
+LOG_PATH = Path.home() / ".local/share/media-mcp/server.log"
 
 ut.console = Console(highlight=False)   # il patch sopra la manda su stderr
 

@@ -47,6 +47,6 @@ cat <<EOF
 
 Fatto. Restano due passi a mano:
   1. In ~/.config/hypr/hyprland.lua aggiungi:  require("hypr.mpv-pip")   poi: hyprctl reload
-  2. Per il tracciamento e il popup via MCP copia aw-cli-tool/mcp_server.py in ~/.local/share/aw-cli-tool/
+  2. Per il tracciamento e il popup via MCP copia mcp-server/mcp_server.py in ~/.local/share/media-mcp/ e registralo come server MCP "media"
      e sc-tool/sc_helper.py in ~/.local/share/sc-tool/, poi riconnetti l'MCP con /mcp.
 EOF
