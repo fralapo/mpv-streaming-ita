@@ -5,10 +5,9 @@ description: Riproduci, cerca, scarichi e tieni traccia di anime, serie TV e fil
 
 # aw-cli + StreamingCommunity: guarda e sincronizza contenuti
 
-aw-cli e lo strumento StreamingCommunity (vixsrc) sono installati e configurati.
-Entrambi sono esposti agli agenti come **strumenti MCP** (server locale
-`~/.local/share/aw-cli-tool/mcp_server.py`). La watchlist di anime è sincronizzata
-su **AniList** (punto di convergenza unico; nel browser la registra Mal-Sync).
+aw-cli e lo strumento StreamingCommunity (vixsrc) sono esposti agli agenti come **strumenti MCP** (server locale
+`~/.local/share/aw-cli-tool/mcp_server.py`). La watchlist di anime si sincronizza
+su **AniList** (se nel browser usi Mal-Sync, anche ciò che guardi lì finisce nella stessa lista).
 
 ## Strumenti MCP disponibili (prefisso `mcp__aw-cli__`)
 
@@ -37,16 +36,16 @@ Trova e usa i tool tramite la ricerca strumenti.
 
 Il tool **`watchlist`** unisce in un'unica vista, sempre fresca, TUTTO ciò che riguarda la visione:
 - **AniList** (browser con Mal-Sync + terminale con aw-cli): stato, progresso, `prossimo_episodio`;
-- **Simkl** (`simkl_list`): serie TV, film e anime tracciati su Simkl — stesso schema: `episodio`, `stagione`, `prossimo_episodio`, `stato`; collegamento OAuth2 PKCE già fatto (app 'aw-cli helper', token con auto-refresh su 401, refresh non rotante 180gg);
+- **Simkl** (`simkl_list`): serie TV, film e anime tracciati su Simkl — stesso schema: `episodio`, `stagione`, `prossimo_episodio`, `stato`; si collega una volta con `simkl_auth` (OAuth2 PKCE, token rinnovato in automatico);
 - **cronologia aw-cli** (anime dal terminale);
 - **attività StreamingCommunity** (film e serie TV guardati/scaricati, con `prossimo_episodio` per le serie).
 
 Con `query` filtri per titolo (cerca in tutte le fonti); con `status` filtri per stato (CURRENT/COMPLETED/PLANNING/...).
 Riprese automatiche (catena):
 - anime: `play` senza `episode` continua — 1) cronologia aw-cli, 2) **AniList**, 3) **Simkl**;
-- serie TV/film: `sc_stream` senza `episode` continua — 1) ultimo guardato su SC, 2) **Simkl** (es. Off Campus S1E5 → riparte da S1E6).
+- serie TV/film: `sc_stream` senza `episode` continua — 1) ultimo guardato su SC, 2) **Simkl** (es. ultimo visto S1E5 → riparte da S1E6).
 
-Esempio: `watchlist query="off campus"` → fonte simkl: Off Campus, serie tv, CURRENT, S1E5, prossimo S1E6.
+Esempio: `watchlist query="the last of us"` → fonte simkl, serie tv, CURRENT, S1E5, prossimo S1E6.
 
 ## Flussi tipici
 
@@ -58,7 +57,7 @@ Esempio: `watchlist query="off campus"` → fonte simkl: Off Campus, serie tv, C
 
 Regole:
 - `sc_stream`/`sc_download` lanciano processi staccati e ritornano subito un `pid`: non attendere il termine; usa `sc_status`.
-- `play` java lancia mpv sul desktop: non riavviare a meno che l'utente non lo chieda.
+- `play` lancia mpv sul desktop: non riavviare a meno che l'utente non lo chieda.
 - Titoli riconosci anche scritti male; se la ricerca è ambigua usa `index` (0-based) dai risultati.
 
 ## Sincronizzazione
@@ -72,6 +71,6 @@ Regole:
 
 - Server MCP: `~/.local/share/aw-cli-tool/mcp_server.py` (log: `server.log` nella stessa cartella)
 - Helper StreamingCommunity: `~/.local/share/sc-tool/sc_helper.py` (venv: `~/.local/share/sc-tool/venv`; cartella di lavoro/config/download: `~/.local/share/sc-tool/run`; log: `run.log`)
-- Config aw-cli: `~/.local/share/uv/tools/aw-cli/lib/python3.14/site-packages/aw_cli/config.toml`
+- Config aw-cli: `config.toml` dentro il pacchetto `aw_cli` nel venv di uv (`~/.local/share/uv/tools/aw-cli/lib/python3.*/site-packages/aw_cli/`)
 - Download: `~/Videos/Anime` (anime) e `~/Videos/StreamingCommunity/{Film,Serie TV}` (film/serie)
 - Nota: i tool StreamingCommunity vanno usati SOLO tramite l'helper (cwd dedicata): l'import del progetto scandaglia la cwd, e dalla home si blocca.

@@ -47,10 +47,16 @@ echo "ArtCNN..."
 art=https://github.com/Artoriuz/ArtCNN/releases/latest/download
 for s in ArtCNN_C4F16 ArtCNN_C4F32; do curl -fsSL -o "$mpv_dir/shaders/$s.glsl" "$art/$s.glsl"; done
 
+# Server MCP, helper StreamingCommunity e skill di Claude Code (servono solo per riprodurre da Claude Code)
+mkdir -p ~/.local/share/aw-cli-tool ~/.local/share/sc-tool/run ~/.claude/skills/aw-cli
+install -m 644 "$here"/aw-cli-tool/mcp_server.py ~/.local/share/aw-cli-tool/
+install -m 644 "$here"/sc-tool/sc_helper.py ~/.local/share/sc-tool/
+install -m 644 "$here"/claude-skill/aw-cli/SKILL.md ~/.claude/skills/aw-cli/
+
 cat <<EOF
 
-Fatto. Restano due passi a mano:
-  1. In ~/.config/hypr/hyprland.lua aggiungi:  require("hypr.mpv-pip")   poi: hyprctl reload
-  2. Per il tracciamento e il popup via MCP copia aw-cli-tool/mcp_server.py in ~/.local/share/aw-cli-tool/
-     e sc-tool/sc_helper.py in ~/.local/share/sc-tool/, poi riconnetti l'MCP con /mcp.
+Fatto. Passi rimanenti (dettagli nel README):
+  1. Solo con Hyprland: in ~/.config/hypr/hyprland.lua aggiungi  require("hypr.mpv-pip")  poi  hyprctl reload
+  2. Solo per Claude Code: installa aw-cli e StreamingCommunity, poi registra il server MCP:
+       claude mcp add aw-cli -- ~/.local/share/uv/tools/aw-cli/bin/python ~/.local/share/aw-cli-tool/mcp_server.py
 EOF
