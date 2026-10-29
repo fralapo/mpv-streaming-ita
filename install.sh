@@ -10,7 +10,7 @@ pip_dir=~/.config/mpv-pip
 mkdir -p "$mpv_dir"/{scripts,fonts,shaders,script-opts} ~/.local/bin ~/.config/hypr ~/Pictures/mpv
 
 install -m 644 "$here"/mpv/mpv.conf "$here"/mpv/input.conf "$mpv_dir"/
-install -m 644 "$here"/mpv/scripts/skip-chapters.lua "$here"/mpv/scripts/flow.lua "$mpv_dir"/scripts/
+install -m 644 "$here"/mpv/scripts/skip-chapters.lua "$here"/mpv/scripts/flow.lua "$here"/mpv/scripts/gestures.lua "$mpv_dir"/scripts/
 install -m 755 "$here"/bin/mpv-pip-toggle ~/.local/bin/
 install -m 644 "$here"/hypr/mpv-pip.lua ~/.config/hypr/
 
@@ -32,7 +32,7 @@ chmod +x "$mpv_dir/scripts/uosc/bin/ziggy-linux"
 # Patch: nella barra in alto resta solo il pulsante di chiusura (niente riduci e ingrandisci)
 sed -i "s/^\tself.buttons = .*/\tself.buttons = {close}/" "$mpv_dir/scripts/uosc/elements/TopBar.lua"
 mkdir -p "$mpv_dir/script-opts"
-cp "$here"/mpv/script-opts/uosc.conf "$here"/mpv/script-opts/flow.conf "$mpv_dir/script-opts/"
+cp "$here"/mpv/script-opts/uosc.conf "$here"/mpv/script-opts/flow.conf "$here"/mpv/script-opts/gestures.conf "$mpv_dir/script-opts/"
 
 echo "thumbfast..."
 curl -fsSL -o "$mpv_dir/scripts/thumbfast.lua" https://raw.githubusercontent.com/po5/thumbfast/master/thumbfast.lua
