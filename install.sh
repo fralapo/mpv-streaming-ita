@@ -11,7 +11,10 @@ mkdir -p "$mpv_dir"/{scripts,fonts,shaders,script-opts} ~/.local/bin ~/.config/h
 
 install -m 644 "$here"/mpv/mpv.conf "$here"/mpv/input.conf "$mpv_dir"/
 install -m 644 "$here"/mpv/scripts/skip-chapters.lua "$here"/mpv/scripts/flow.lua "$here"/mpv/scripts/gestures.lua "$here"/mpv/scripts/hls-subs.lua "$here"/mpv/scripts/progress.lua "$here"/mpv/scripts/quality.lua "$mpv_dir"/scripts/
-install -m 755 "$here"/bin/mpv-pip-toggle "$here"/bin/mpv-theme ~/.local/bin/
+install -m 755 "$here"/bin/mpv-pip-toggle "$here"/bin/mpv-theme "$here"/bin/mpv-streaming-update ~/.local/bin/
+# mpv-streaming-update aggiorna da qui: si ricorda dove sta il repo
+mkdir -p ~/.local/state/mpv-streaming-ita
+echo "$here" > ~/.local/state/mpv-streaming-ita/repo
 mkdir -p "$mpv_dir/themes"
 install -m 644 "$here"/themes/*.conf "$mpv_dir/themes/"
 install -m 644 "$here"/hypr/mpv-pip.lua ~/.config/hypr/
@@ -27,14 +30,17 @@ trap 'rm -rf "$tmp"' EXIT
 echo "uosc..."
 curl -fsSL -o "$tmp/uosc.zip" https://github.com/tomasklaen/uosc/releases/latest/download/uosc.zip
 unzip -q -o "$tmp/uosc.zip" -d "$tmp/uosc"
-rm -rf "$mpv_dir/scripts/uosc"
-cp -r "$tmp/uosc/scripts/uosc" "$mpv_dir/scripts/"
-cp "$tmp"/uosc/fonts/* "$mpv_dir/fonts/"
-chmod +x "$mpv_dir/scripts/uosc/bin/ziggy-linux"
-# Patch: nella barra in alto resta solo il pulsante di chiusura (niente riduci e ingrandisci)
-sed -i "s/^\tself.buttons = .*/\tself.buttons = {close}/" "$mpv_dir/scripts/uosc/elements/TopBar.lua"
-# Patch: la rotella sul selettore di velocità passa da gestures.lua (passi di 0,1 limitati; su = più lenta, giù = più veloce)
-sed -i "s|^function Speed:handle_wheel_up() .*|function Speed:handle_wheel_up() mp.commandv('script-binding', 'gestures/speed-wheel-down') end|; s|^function Speed:handle_wheel_down() .*|function Speed:handle_wheel_down() mp.commandv('script-binding', 'gestures/speed-wheel-up') end|" "$mpv_dir/scripts/uosc/elements/Speed.lua"
+# Le modifiche si applicano sulla copia scaricata: se la nuova versione non le accetta resta quella già installata
+problems=0 patched=1
+"$here"/tools/patch-uosc.sh "$tmp/uosc/scripts/uosc" || { patched=0; problems=1; }
+if (( patched )) || [[ ! -d $mpv_dir/scripts/uosc ]]; then
+    rm -rf "$mpv_dir/scripts/uosc"
+    cp -r "$tmp/uosc/scripts/uosc" "$mpv_dir/scripts/"
+    cp "$tmp"/uosc/fonts/* "$mpv_dir/fonts/"
+    chmod +x "$mpv_dir/scripts/uosc/bin/ziggy-linux"
+else
+    echo "uosc: tengo la versione già installata finché le modifiche non vengono aggiornate nel repo" >&2
+fi
 mkdir -p "$mpv_dir/script-opts"
 cp "$here"/mpv/script-opts/uosc.conf "$here"/mpv/script-opts/flow.conf "$here"/mpv/script-opts/gestures.conf "$mpv_dir/script-opts/"
 # Tema: THEME=nord ./install.sh per sceglierlo, altrimenti resta quello già in uso (o lo standard)
@@ -55,6 +61,9 @@ install -m 644 "$here"/sc-tool/sc_helper.py ~/.local/share/sc-tool/
 install -m 644 "$here"/skill/aw-cli/SKILL.md ~/.agents/skills/aw-cli/
 install -m 644 "$here"/skill/aw-cli/SKILL.md ~/.claude/skills/aw-cli/
 
+# Lanciato da mpv-streaming-update: il riepilogo lo fa lui
+[[ -n ${MPV_STREAMING_UPDATE:-} ]] && exit $problems
+
 cat <<EOF
 
 Fatto. Passi rimanenti (dettagli nel README):
@@ -63,4 +72,7 @@ Fatto. Passi rimanenti (dettagli nel README):
      per esempio in Claude Code:
        claude mcp add aw-cli -- ~/.local/share/uv/tools/aw-cli/bin/python ~/.local/share/aw-cli-tool/mcp_server.py
      (comandi per Codex, Gemini CLI, OpenCode e gli altri nel README)
+  3. Aggiornamenti: mpv-streaming-update aggiorna tutto e controlla che funzioni;
+     mpv-streaming-update --auto-on lo fa da solo ogni settimana.
 EOF
+exit $problems

@@ -1,0 +1,42 @@
+# Controlla che il repo funzioni ancora con le ultime versioni dei progetti su cui si basa:
+# uosc (le modifiche si applicano ancora?), aw-cli e StreamingCommunity (il server MCP parte ancora?).
+# Gira a ogni push e ogni lunedì; se fallisce GitHub avvisa per email il proprietario del repo.
+name: Compatibilità con i progetti esterni
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sintassi di script e configurazioni
+        run: |
+          sudo apt-get install -y -qq luajit
+          for f in mpv/scripts/*.lua; do luajit -bl "$f" > /dev/null; done
+          for f in install.sh bin/* tools/*.sh; do bash -n "$f"; done
+          python3 -m py_compile aw-cli-tool/mcp_server.py sc-tool/sc_helper.py tools/check-mcp.py
+
+      - name: Modifiche a uosc sull'ultima versione
+        run: |
+          curl -fsSL -o /tmp/uosc.zip https://github.com/tomasklaen/uosc/releases/latest/download/uosc.zip
+          unzip -q /tmp/uosc.zip -d /tmp/uosc
+          tools/patch-uosc.sh /tmp/uosc/scripts/uosc
+
+      - name: Server MCP con le ultime versioni di aw-cli e StreamingCommunity
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          ~/.local/bin/uv tool install aw-cli
+          python3 -m venv ~/.local/share/sc-tool/venv
+          ~/.local/share/sc-tool/venv/bin/pip install -q streamingcommunity-download-stream
+          mkdir -p ~/.local/share/aw-cli-tool ~/.local/share/sc-tool/run
+          cp aw-cli-tool/mcp_server.py ~/.local/share/aw-cli-tool/
+          cp sc-tool/sc_helper.py ~/.local/share/sc-tool/
+          # Le ricerche online dipendono dai siti (e dal paese del server di GitHub): qui conta solo la struttura
+          python3 tools/check-mcp.py --offline

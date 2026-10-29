@@ -1,0 +1,153 @@
+#!/bin/bash
+# Aggiorna mpv-streaming-ita e i progetti su cui si basa, poi controlla che tutto funzioni ancora.
+#   mpv-streaming-update             aggiorna adesso: repo, uosc, thumbfast, ArtCNN, aw-cli, StreamingCommunity
+#   mpv-streaming-update --auto      come sopra, ma solo se l'ultimo aggiornamento riuscito ha più di 6 giorni
+#                                    e mpv non è aperto; scrive nel log e notifica solo i problemi (lo usa il timer)
+#   mpv-streaming-update --auto-on   controllo automatico: timer systemd utente, una volta al giorno
+#   mpv-streaming-update --auto-off  lo disattiva
+# Se un aggiornamento di aw-cli o StreamingCommunity rompe il server MCP, torna alla versione di prima
+# e salta quella versione finché non ne esce una nuova.
+set -uo pipefail
+
+state=~/.local/state/mpv-streaming-ita
+units=~/.config/systemd/user
+aw_python=~/.local/share/uv/tools/aw-cli/bin/python
+sc_python=~/.local/share/sc-tool/venv/bin/python
+sc_pkg=streamingcommunity-download-stream
+mkdir -p "$state"
+
+case ${1:-} in
+    --auto) auto=1 ;;
+    "") auto=0 ;;
+    --auto-on)
+        mkdir -p "$units"
+        cat > "$units/mpv-streaming-update.service" <<'EOF'
+[Unit]
+Description=Aggiorna mpv-streaming-ita e controlla che funzioni
+
+[Service]
+Type=oneshot
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=%h/.local/bin/mpv-streaming-update --auto
+EOF
+        cat > "$units/mpv-streaming-update.timer" <<'EOF'
+[Unit]
+Description=Controllo giornaliero degli aggiornamenti di mpv-streaming-ita
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+        systemctl --user daemon-reload && systemctl --user enable --now mpv-streaming-update.timer &&
+            echo "Controllo automatico attivo: ogni giorno guarda se sono passati 6 giorni dall'ultimo aggiornamento. Log: $state/update.log"
+        exit ;;
+    --auto-off)
+        systemctl --user disable --now mpv-streaming-update.timer 2>/dev/null
+        rm -f "$units"/mpv-streaming-update.{service,timer}
+        systemctl --user daemon-reload
+        echo "Controllo automatico disattivato"
+        exit ;;
+    *) sed -n '2,9s/^# \?//p' "$0"; exit 2 ;;
+esac
+
+problems=()
+problem() { echo "PROBLEMA: $*"; problems+=("$*"); }
+notify() { command -v notify-send >/dev/null && notify-send -a mpv-streaming-ita "$@" 2>/dev/null; }
+
+if (( auto )); then
+    exec >>"$state/update.log" 2>&1
+    echo "== $(date '+%F %T')"
+    last=$(cat "$state/last-success" 2>/dev/null || echo 0)
+    (( $(date +%s) - last < 6 * 86400 )) && { echo "aggiornato da poco, salto"; exit 0; }
+    pgrep -x mpv >/dev/null && { echo "mpv è aperto, riprovo più tardi"; exit 0; }
+fi
+
+repo=$(cat "$state/repo" 2>/dev/null)
+if [[ ! -x $repo/install.sh ]]; then
+    echo "Non trovo il repo (rilancia install.sh dalla sua cartella)"
+    (( auto )) && notify -u critical "Aggiornamento non riuscito" "Non trovo il repo mpv-streaming-ita: rilancia install.sh"
+    exit 1
+fi
+
+# 1. Il repo: solo se non ci sono modifiche locali, e solo avanti veloce
+if [[ -d $repo/.git ]]; then
+    if [[ -z $(git -C "$repo" status --porcelain) ]]; then
+        git -C "$repo" pull -q --ff-only || problem "git pull non riuscito in $repo"
+    else
+        echo "Modifiche locali in $repo: salto git pull"
+    fi
+fi
+
+# 2. Config di mpv, uosc, thumbfast, ArtCNN, server MCP e skill
+echo "Installazione..."
+MPV_STREAMING_UPDATE=1 "$repo/install.sh" || problem "install.sh ha segnalato un problema (dettagli sopra)"
+
+# 3. aw-cli e StreamingCommunity: si passa all'ultima versione su PyPI, ricordando quella di prima
+version() { "$1" -c "import importlib.metadata as m; print(m.version('$2'))" 2>/dev/null; }
+latest() { curl -fsSL --max-time 20 "https://pypi.org/pypi/$1/json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["info"]["version"])'; }
+aw_dir() { "$aw_python" -c 'import aw_cli, os; print(os.path.dirname(aw_cli.__file__))' 2>/dev/null; }
+# aw-cli tiene config.toml (token compresi) e history.json dentro il pacchetto:
+# reinstallarlo li cancella, quindi si salvano prima e si rimettono dopo
+install_aw() {
+    local dir rc f
+    dir=$(aw_dir) && mkdir -p -m 700 "$state/aw-cli-backup" &&
+        for f in config.toml history.json; do [[ -f $dir/$f ]] && cp "$dir/$f" "$state/aw-cli-backup/"; done
+    uv tool install -q --force "aw-cli==$1"
+    rc=$?
+    dir=$(aw_dir) && for f in config.toml history.json; do
+        [[ -f $state/aw-cli-backup/$f ]] && cp "$state/aw-cli-backup/$f" "$dir/"
+    done
+    return $rc
+}
+install_sc() { "$sc_python" -m pip install -q "$sc_pkg==$1"; }
+
+changed=() # "nome pacchetto vecchia nuova"
+upgrade() { # nome pacchetto python funzione-di-installazione
+    local name=$1 pkg=$2 py=$3 inst=$4 cur new
+    [[ -x $py ]] || return 0
+    cur=$(version "$py" "$pkg") || { problem "$name: versione installata illeggibile"; return; }
+    new=$(latest "$pkg") || { problem "$name: PyPI non raggiungibile"; return; }
+    [[ $new == "$cur" ]] && { echo "$name $cur: già l'ultima"; return; }
+    if [[ $new == "$(cat "$state/bad-$pkg" 2>/dev/null)" ]]; then
+        echo "$name $new era già stata scartata perché rompeva il server: resto alla $cur"
+        return
+    fi
+    echo "$name: $cur → $new"
+    if $inst "$new"; then changed+=("$name $pkg $cur $new"); else problem "$name: installazione della $new non riuscita"; fi
+}
+command -v uv >/dev/null && upgrade aw-cli aw-cli "$aw_python" install_aw
+upgrade StreamingCommunity "$sc_pkg" "$sc_python" install_sc
+
+# 4. Il server MCP funziona ancora? Se no, si torna indietro
+if [[ -x $aw_python ]]; then
+    python3 "$repo/tools/check-mcp.py"
+    rc=$?
+    if (( rc == 1 && ${#changed[@]} )); then
+        for c in "${changed[@]}"; do
+            read -r name pkg old new <<<"$c"
+            if [[ $pkg == aw-cli ]]; then install_aw "$old"; else install_sc "$old"; fi
+            echo "$new" > "$state/bad-$pkg"
+            problem "$name $new rompeva il server MCP: tornato alla $old"
+        done
+        python3 "$repo/tools/check-mcp.py"
+        (( $? == 1 )) && problem "il server MCP non funziona nemmeno con le versioni precedenti"
+    elif (( rc == 1 )); then
+        problem "il server MCP non funziona (dettagli sopra)"
+    fi
+    # rc == 2: le ricerche online non trovano nulla. Spesso è il sito, quindi è solo un avviso
+fi
+
+if (( ${#problems[@]} )); then
+    msg=$(printf '%s\n' "${problems[@]}")
+    echo; echo "Aggiornamento con problemi:"; echo "$msg"
+    notify -u critical "Aggiornamento con problemi" "$msg"$'\n'"Log: $state/update.log"
+    exit 1
+fi
+date +%s > "$state/last-success"
+echo; echo "Tutto aggiornato e funzionante."
+(( ${#changed[@]} )) && echo "Riavvia il server MCP nel tuo agente (in Claude Code: /mcp) per usare le nuove versioni."
+exit 0

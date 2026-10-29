@@ -4,6 +4,7 @@
 
 **Configurazione di [mpv](https://mpv.io) per guardare anime, serie TV e film in italiano su Linux, con salto di opening ed ending, popup sempre in primo piano e un server MCP per avviarli chiedendolo a un agente AI (Claude Code, Codex, Gemini CLI, OpenCode...).**
 
+[![Compatibilità con i progetti esterni](https://github.com/fralapo/mpv-streaming-ita/actions/workflows/upstream-check.yml/badge.svg)](https://github.com/fralapo/mpv-streaming-ita/actions/workflows/upstream-check.yml)
 [![Licenza MIT](https://img.shields.io/badge/licenza-MIT-blue)](LICENSE)
 [![testato con mpv 0.41](https://img.shields.io/badge/mpv-0.41-691f69)](https://mpv.io)
 [![Linux Wayland](https://img.shields.io/badge/Linux-Wayland-333)](#requisiti)
@@ -19,6 +20,7 @@ Il repo non contiene video, link a contenuti né account: si limita a configurar
 - [Cosa fa](#cosa-fa)
 - [Requisiti](#requisiti)
 - [Installazione](#installazione)
+- [Aggiornamenti](#aggiornamenti)
 - [Agenti AI e server MCP](#agenti-ai-e-server-mcp)
 - [Contenuto del repo](#contenuto-del-repo)
 - [Temi](#temi)
@@ -61,7 +63,7 @@ cd mpv-streaming-ita
 ./install.sh
 ```
 
-`install.sh` copia la configurazione in `~/.config/mpv`, gli script in `~/.local/bin` e scarica uosc, thumbfast e gli shader ArtCNN, che non sono inclusi nel repo. Puoi rilanciarlo per aggiornare: sovrascrive solo i file che installa lui e mantiene il tema scelto.
+`install.sh` copia la configurazione in `~/.config/mpv`, gli script in `~/.local/bin` e scarica uosc, thumbfast e gli shader ArtCNN, che non sono inclusi nel repo. Puoi rilanciarlo quando vuoi: sovrascrive solo i file che installa lui e mantiene il tema scelto. Per aggiornare c'è [`mpv-streaming-update`](#aggiornamenti).
 
 Attenzione: se hai già un `mpv.conf` o un `input.conf`, verranno sostituiti. Fanne una copia prima.
 
@@ -78,6 +80,30 @@ hyprctl reload
 Al primo avvio ArtCNN compila la sua pipeline. Ci vogliono circa 35 secondi, una volta per formato video, poi resta in cache.
 
 <p align="right">(<a href="#readme-top">torna su</a>)</p>
+
+## Aggiornamenti
+
+uosc, thumbfast, ArtCNN, aw-cli e StreamingCommunity cambiano per conto loro. Per seguirli:
+
+```bash
+mpv-streaming-update
+```
+
+Il comando scarica le novità del repo, reinstalla la configurazione con le ultime versioni di uosc, thumbfast e ArtCNN e porta aw-cli e StreamingCommunity all'ultima versione su PyPI. Poi controlla che tutto funzioni ancora:
+
+- se una nuova versione di uosc non accetta più le modifiche di questo repo, resta installata quella di prima;
+- se una nuova versione di aw-cli o StreamingCommunity impedisce al server MCP di partire, torna alla versione precedente e salta quella rotta finché non ne esce un'altra;
+- configurazione, token e cronologia di aw-cli vengono salvati prima e rimessi a posto dopo, perché aw-cli li tiene dentro la cartella del pacchetto e una reinstallazione li cancellerebbe.
+
+Per farlo andare da solo:
+
+```bash
+mpv-streaming-update --auto-on
+```
+
+Un timer di systemd lo lancia ogni giorno, ma l'aggiornamento parte solo se sono passati 6 giorni dall'ultimo riuscito e mpv non è aperto. Se qualcosa va storto arriva una notifica sul desktop; il resto finisce in `~/.local/state/mpv-streaming-ita/update.log`. `--auto-off` lo disattiva.
+
+Ogni lunedì GitHub prova il repo con le ultime versioni di uosc, aw-cli e StreamingCommunity ([risultati](https://github.com/fralapo/mpv-streaming-ita/actions/workflows/upstream-check.yml)). Se un progetto esterno cambia in modo incompatibile, lo si vede lì prima che arrivi sul tuo computer.
 
 ## Agenti AI e server MCP
 
@@ -202,6 +228,9 @@ Dopo aver modificato `mcp_server.py` riavvia il server dal tuo agente (in Claude
 | `hypr/mpv-pip.lua` | regole Hyprland per il popup `AnimePip`: fluttuante, su tutti i desktop, 16:9, in basso a destra |
 | `bin/mpv-pip-toggle` | alterna la finestra di mpv tra schermo intero e popup e ignora le finestre che non sono mpv |
 | `bin/mpv-theme`, `themes/*.conf` | temi di colore e il comando per cambiarli |
+| `bin/mpv-streaming-update` | aggiorna tutto, controlla che funzioni e torna indietro se qualcosa si rompe |
+| `tools/patch-uosc.sh`, `tools/check-mcp.py` | applicano e verificano le modifiche a uosc; provano il server MCP come farebbe un agente |
+| `.github/workflows/upstream-check.yml` | prova settimanale con le ultime versioni dei progetti esterni |
 | `aw-cli-tool/mcp_server.py` | server MCP: aw-cli, StreamingCommunity, capitoli AniSkip, tracciamento della posizione via IPC di mpv, AniList e Simkl |
 | `sc-tool/sc_helper.py` | helper che il server MCP usa per StreamingCommunity |
 | `skill/aw-cli/SKILL.md` | skill nel formato Agent Skills: spiega a qualsiasi agente come usare gli strumenti |

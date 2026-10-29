@@ -90,8 +90,23 @@ def get_provider(name: str | None = None):
     return _providers[name]
 
 
+def _ensure_config() -> None:
+    """aw-cli crea config.toml solo con la configurazione interattiva al primo avvio da terminale:
+    se manca (installazione nuova, aw-cli mai lanciato) ne scrive una minima con mpv e AnimeWorld."""
+    if CONFIG_PATH.exists():
+        return
+    import shutil
+    cfg = {"player": {"type": "mpv", "path": shutil.which("mpv") or "mpv"},
+           "general": {"specials": False},
+           "provider": {"source": "animeworld"}}
+    with CONFIG_PATH.open("w", encoding="utf-8") as f:
+        ut.toml.dump(cfg, f)
+    log(f"config.toml mancante: creata quella predefinita in {CONFIG_PATH}")
+
+
 def refresh_config() -> dict:
     """Rilegge config.toml da disco (così token/provider aggiornati valgono subito)."""
+    _ensure_config()
     ut.get_config()
     return ut.config_data
 
