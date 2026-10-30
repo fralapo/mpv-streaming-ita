@@ -1148,6 +1148,15 @@ def _sc_read_progress(progress_file: Path) -> dict | None:
         return None
 
 
+def _sc_progress_keep(key: str, pos: float, duration: float) -> None:
+    """Salva il minutaggio, ma un'apertura/chiusura lampo (<60s) non cancella
+    un progresso già avanzato (>5 min): era il motivo per cui si ripartiva da 0:25."""
+    old = float((_sc_progress_load().get(key) or {}).get("pos", 0))
+    if pos < 60 and old > 300:
+        return
+    _sc_progress_save(key, {"pos": pos, "duration": duration, "at": time.time()})
+
+
 def _sc_watch_simkl(p: subprocess.Popen, cfg: dict, key: str, progress_file: Path) -> None:
     """Durante lo stream SC salva la posizione; a player chiuso segna su Simkl
     l'episodio/film solo se visto oltre SC_WATCHED_PCT, altrimenti ricorda il minuto."""
@@ -1155,13 +1164,13 @@ def _sc_watch_simkl(p: subprocess.Popen, cfg: dict, key: str, progress_file: Pat
         time.sleep(PROGRESS_SAVE_SECS)
         st = _sc_read_progress(progress_file)
         if st and st.get("percent", 0) < SC_WATCHED_PCT:
-            _sc_progress_save(key, {"pos": st["pos"], "duration": st["duration"], "at": time.time()})
+            _sc_progress_keep(key, st["pos"], st["duration"])
     st = _sc_read_progress(progress_file) or {}
     progress_file.unlink(missing_ok=True)
     pct = float(st.get("percent", 0))
     if not st.get("eof") and pct < SC_WATCHED_PCT:
         if st.get("pos"):
-            _sc_progress_save(key, {"pos": st["pos"], "duration": st["duration"], "at": time.time()})
+            _sc_progress_keep(key, st["pos"], st["duration"])
             log(f"sc progresso {key}: {int(st['pos'])}s ({pct:.0f}%), non segnato su Simkl")
         return
     _sc_progress_save(key, None)
